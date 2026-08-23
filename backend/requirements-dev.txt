@@ -1,0 +1,4 @@
+# Test-only dependencies. Not installed in production.
+-r requirements.txt
+pytest>=8.0
+websockets>=12.0

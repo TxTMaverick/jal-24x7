@@ -32,8 +32,20 @@ import type {
   WaterDepartment,
 } from "./types";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") ?? "http://localhost:8000";
+/**
+ * Base URL of the FastAPI backend.
+ *
+ * Render's blueprint passes a bare hostname (jal24x7-api.onrender.com) when one
+ * service references another, so a missing scheme is filled in as https.
+ */
+function resolveApiBase(): string {
+  const raw = process.env.NEXT_PUBLIC_API_BASE?.trim();
+  if (!raw) return "http://localhost:8000";
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  return withScheme.replace(/\/$/, "");
+}
+
+export const API_BASE = resolveApiBase();
 
 const TOKEN_KEY = "jal24x7_token";
 

@@ -1,0 +1,75 @@
+# Render blueprint for JAL 24x7.
+#
+# Deploys both services on Render and wires them to each other automatically:
+#   * the frontend learns the API hostname via fromService
+#   * the backend learns the frontend hostname for its CORS allow-list
+#
+# Both run on the free plan. No credit card required.
+#
+# To deploy: push this repo to GitHub, then on render.com choose
+# New + > Blueprint and select the repository.
+
+services:
+  # ---------------------------------------------------------------- backend
+  - type: web
+    name: jal24x7-api
+    runtime: python
+    plan: free
+    region: singapore          # closest Render region to India
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+
+      # OTP is shown on screen instead of sent by SMS. Set to false once a
+      # real SMS gateway is wired into routers/auth.py.
+      - key: DEMO_MODE
+        value: "true"
+
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+
+      # Render generates a strong secret and keeps it out of the repo.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # SQLite on the instance disk. Good enough for a demo: the catalogue,
+      # vendors and drivers reseed automatically on every boot.
+      # For durable orders, create a Render Postgres and set this to its
+      # Internal Database URL, changing the prefix to postgresql+psycopg://
+      - key: DATABASE_URL
+        value: "sqlite:///./jal24x7.db"
+
+      # Locked to the deployed frontend. Never use "*" with credentials on.
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: jal24x7-web
+          property: host
+
+  # --------------------------------------------------------------- frontend
+  - type: web
+    name: jal24x7-web
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22.11.0"
+
+      # NEXT_PUBLIC_* values are inlined at build time, so this has to be
+      # present during the build, not just at runtime. Render resolves it to
+      # the API's hostname and the client prefixes https:// itself.
+      - key: NEXT_PUBLIC_API_BASE
+        fromService:
+          type: web
+          name: jal24x7-api
+          property: host
