@@ -1,0 +1,16 @@
+# JAL 24x7 - FastAPI backend dependencies
+# Deliberately kept to pure-Python / prebuilt-wheel packages so the project
+# installs cleanly on modern Python (3.11 - 3.14) with no C toolchain.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+PyJWT>=2.8
+python-multipart>=0.0.9
+email-validator>=2.1
+
+# --- dev / test only ---
+httpx>=0.27
+pytest>=8.0
+httpx>=0.27

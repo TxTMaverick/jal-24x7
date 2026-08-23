@@ -1,0 +1,82 @@
+{
+  "bottle-500ml": {
+    "file": "/images/products/bottle-500ml.jpg",
+    "source": "https://www.pexels.com/photo/1540235/",
+    "credit": "Pexels"
+  },
+  "bottle-1l": {
+    "file": "/images/products/bottle-1l.jpg",
+    "source": "https://www.pexels.com/photo/11860562/",
+    "credit": "Pexels"
+  },
+  "bottle-2l": {
+    "file": "/images/products/bottle-2l.jpg",
+    "source": "https://www.pexels.com/photo/15524063/",
+    "credit": "Pexels"
+  },
+  "bottle-pack": {
+    "file": "/images/products/bottle-pack.jpg",
+    "source": "https://www.pexels.com/photo/10376368/",
+    "credit": "Pexels"
+  },
+  "can-20l": {
+    "file": "/images/products/can-20l.jpg",
+    "source": "https://www.pexels.com/photo/20612772/",
+    "credit": "Pexels"
+  },
+  "can-20l-alt": {
+    "file": "/images/products/can-20l-alt.jpg",
+    "source": "https://www.pexels.com/photo/37933299/",
+    "credit": "Pexels"
+  },
+  "can-bulk": {
+    "file": "/images/products/can-bulk.jpg",
+    "source": "https://www.pexels.com/photo/12496883/",
+    "credit": "Pexels"
+  },
+  "can-pump": {
+    "file": "/images/products/can-pump.jpg",
+    "source": "https://www.pexels.com/photo/7262739/",
+    "credit": "Pexels"
+  },
+  "camper-50l": {
+    "file": "/images/products/camper-50l.jpg",
+    "source": "https://www.pexels.com/photo/34206531/",
+    "credit": "Pexels"
+  },
+  "camper-office": {
+    "file": "/images/products/camper-office.jpg",
+    "source": "https://www.pexels.com/photo/18720050/",
+    "credit": "Pexels"
+  },
+  "camper-party": {
+    "file": "/images/products/camper-party.jpg",
+    "source": "https://www.pexels.com/photo/33957225/",
+    "credit": "Pexels"
+  },
+  "camper-pour": {
+    "file": "/images/products/camper-pour.jpg",
+    "source": "https://www.pexels.com/photo/7845036/",
+    "credit": "Pexels"
+  },
+  "tanker-yellow": {
+    "file": "/images/products/tanker-yellow.jpg",
+    "source": "https://www.pexels.com/photo/17168925/",
+    "credit": "Pexels"
+  },
+  "tanker-rural": {
+    "file": "/images/products/tanker-rural.jpg",
+    "source": "https://www.pexels.com/photo/16904147/",
+    "credit": "Pexels"
+  },
+  "tanker-street": {
+    "file": "/images/products/tanker-street.jpg",
+    "source": "https://www.pexels.com/photo/37433004/",
+    "credit": "Pexels"
+  },
+  "tanker-truck": {
+    "file": "/images/products/tanker-truck.jpg",
+    "source": "https://www.pexels.com/photo/6940962/",
+    "credit": "Pexels"
+  }
+}
