@@ -1,13 +1,13 @@
 # Render blueprint for JAL 24x7.
 #
-# Deploys both services on Render and wires them to each other automatically:
-#   * the frontend learns the API hostname via fromService
-#   * the backend learns the frontend hostname for its CORS allow-list
+# Deploys both services on Render's free plan and wires them to each other:
+#   * the frontend is told the API hostname at build time
+#   * the backend is told the frontend hostname for its CORS allow-list
 #
-# Both run on the free plan. No credit card required.
+# No region is pinned, so Render uses the account default. Pinning a region
+# that an account cannot use makes the whole blueprint fail to apply.
 #
-# To deploy: push this repo to GitHub, then on render.com choose
-# New + > Blueprint and select the repository.
+# To deploy: push to GitHub, then on render.com choose New + > Blueprint.
 
 services:
   # ---------------------------------------------------------------- backend
@@ -15,36 +15,33 @@ services:
     name: jal24x7-api
     runtime: python
     plan: free
-    region: singapore          # closest Render region to India
     rootDir: backend
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.6"
 
-      # OTP is shown on screen instead of sent by SMS. Set to false once a
-      # real SMS gateway is wired into routers/auth.py.
+      # OTP is shown on screen rather than sent by SMS.
       - key: DEMO_MODE
         value: "true"
 
       - key: RATE_LIMIT_ENABLED
         value: "true"
 
-      # Render generates a strong secret and keeps it out of the repo.
+      # Render generates this and keeps it out of the repository.
       - key: JWT_SECRET
         generateValue: true
 
-      # SQLite on the instance disk. Good enough for a demo: the catalogue,
-      # vendors and drivers reseed automatically on every boot.
-      # For durable orders, create a Render Postgres and set this to its
-      # Internal Database URL, changing the prefix to postgresql+psycopg://
+      # SQLite on the instance disk. The catalogue, suppliers, drivers and
+      # helplines reseed on every boot, so the site is never empty. Orders do
+      # not survive a restart; attach a Render Postgres and point this at its
+      # Internal Database URL (prefix postgresql+psycopg://) to change that.
       - key: DATABASE_URL
         value: "sqlite:///./jal24x7.db"
 
-      # Locked to the deployed frontend. Never use "*" with credentials on.
+      # Locked to the deployed frontend. Never "*" with credentials enabled.
       - key: CORS_ORIGINS
         fromService:
           type: web
@@ -56,18 +53,22 @@ services:
     name: jal24x7-web
     runtime: node
     plan: free
-    region: singapore
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    startCommand: npm run start -- --port $PORT
-    autoDeploy: true
+    startCommand: npm run start -- --port $PORT --hostname 0.0.0.0
     envVars:
       - key: NODE_VERSION
-        value: "22.11.0"
+        value: "22"
 
-      # NEXT_PUBLIC_* values are inlined at build time, so this has to be
-      # present during the build, not just at runtime. Render resolves it to
-      # the API's hostname and the client prefixes https:// itself.
+      # A Next.js build is memory hungry and the free instance has 512 MB.
+      # Capping the old-space keeps V8 garbage collecting instead of being
+      # killed by the OOM reaper part way through the build.
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=460"
+
+      # NEXT_PUBLIC_* is inlined at build time, so this must exist during the
+      # build, not just at runtime. Render resolves it to the API's hostname
+      # and the API client prefixes https:// itself.
       - key: NEXT_PUBLIC_API_BASE
         fromService:
           type: web
