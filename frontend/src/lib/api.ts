@@ -76,7 +76,11 @@ function readError(status: number, body: unknown): string {
     }
   }
   if (status === 0) {
-    return "Cannot reach the server. Is the backend running on port 8000?";
+    // In development the usual cause is a backend that was never started.
+    // In production it is a free-tier instance that has spun down.
+    return API_BASE.includes("localhost")
+      ? "Cannot reach the server. Start the backend with: uvicorn app.main:app --reload"
+      : "The server is waking up. This takes up to a minute on the free plan, please try again.";
   }
   return `Request failed (HTTP ${status}).`;
 }
@@ -109,14 +113,33 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     if (token) finalHeaders.Authorization = `Bearer ${token}`;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(url.toString(), {
-      ...rest,
-      headers: finalHeaders,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-  } catch {
+  const request: RequestInit = {
+    ...rest,
+    headers: finalHeaders,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  };
+
+  // Free hosting spins an idle instance down, and the first request then has
+  // to wait for it to boot. A single fetch would simply fail, so retry a few
+  // times with a growing pause rather than showing the user an error.
+  const MAX_ATTEMPTS = 3;
+  let response: Response | undefined;
+  let lastFailure: unknown;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      response = await fetch(url.toString(), request);
+      break;
+    } catch (failure) {
+      lastFailure = failure;
+      if (attempt < MAX_ATTEMPTS - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+      }
+    }
+  }
+
+  if (!response) {
+    void lastFailure;
     throw new Error(readError(0, null));
   }
 
