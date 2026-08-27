@@ -17,6 +17,7 @@ import { PaymentSheet } from "@/components/PaymentSheet";
 import { Check, Clock, MapPin, Shield, Truck } from "@/components/icons";
 import { Badge, Button, Field, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
+import { EXPRESS_DELIVERY_FEE } from "@/lib/pricing";
 import { cx, litres, money } from "@/lib/format";
 import { clearSchedule, readSchedule, scheduleToISO } from "@/lib/schedule";
 import type { PayResult, Quote } from "@/lib/types";
@@ -320,7 +321,7 @@ export default function CheckoutPage() {
                   <span className="flex items-center gap-2 text-sm font-semibold text-ink-900">
                     <Clock className="size-4 text-accent-600" />
                     Express delivery
-                    <Badge tone="warn">+₹80</Badge>
+                    <Badge tone="warn">+{money(EXPRESS_DELIVERY_FEE)}</Badge>
                   </span>
                   <span className="mt-0.5 block text-xs text-ink-500">
                     Priority dispatch, roughly 40% faster than the standard ETA.

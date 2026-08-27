@@ -36,9 +36,9 @@ const SPEEDS = [
 
 const PRICE_BANDS = [
   { key: "", label: "Any price", min: undefined, max: undefined },
-  { key: "under-200", label: "Under ₹200", min: undefined, max: 200 },
-  { key: "200-500", label: "₹200 - ₹500", min: 200, max: 500 },
-  { key: "500-plus", label: "Above ₹500", min: 500, max: undefined },
+  { key: "under-100", label: "Under ₹100", min: undefined, max: 100 },
+  { key: "100-300", label: "₹100 - ₹300", min: 100, max: 300 },
+  { key: "300-plus", label: "Above ₹300", min: 300, max: undefined },
 ];
 
 function ProductsInner() {

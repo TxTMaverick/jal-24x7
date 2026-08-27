@@ -28,7 +28,7 @@ const SECTIONS = [
     heading: "3. Pricing, taxes and delivery charges",
     body: [
       "Packaged products are priced per unit. Tankers are priced per trip, with a distance surcharge beyond a free radius of 8 kilometres. Goods and Services Tax is applied at the prevailing rate and shown as a separate line.",
-      "Delivery is free on orders above ₹500. Below that a standard fee applies, and express dispatch carries a higher fee. Every charge is itemised before you pay.",
+      "Delivery is free on orders above ₹150. Below that a standard fee applies, and express dispatch carries a higher fee. Every charge is itemised before you pay.",
     ],
   },
   {

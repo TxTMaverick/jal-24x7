@@ -178,6 +178,10 @@ class VendorMatchOut(BaseModel):
     eta_minutes: int
     reasons: list[str]
     breakdown: dict[str, float]
+    # True when the search radius held nothing and this is a widened fallback
+    # result. The marketplace UI labels these rather than hiding them, so a
+    # visitor outside a served city still sees the real network.
+    out_of_range: bool = False
 
 
 # --------------------------------------------------------------------------- #
@@ -397,7 +401,10 @@ class TrackingOut(BaseModel):
 
 class SubscriptionCreate(BaseModel):
     plan_type: Literal["camper", "society_tanker"]
-    frequency: Literal["daily", "alternate", "weekly"] = "daily"
+    frequency: Literal["daily", "alternate", "weekly", "monthly"] = "daily"
+    # Who the plan is for. Drives the suggested quantity and the copy only;
+    # the price comes from the product or tier, not from this.
+    segment: Literal["individual", "family", "society"] = "individual"
     quantity: int = Field(default=1, ge=1, le=200)
     product_id: int | None = None
     tanker_tier_id: int | None = None
@@ -436,6 +443,7 @@ class SubscriptionOut(BaseModel):
     model_config = ORM
     id: int
     plan_type: str
+    segment: str
     frequency: str
     quantity: int
     contact_name: str

@@ -77,12 +77,71 @@ function readError(status: number, body: unknown): string {
   }
   if (status === 0) {
     // In development the usual cause is a backend that was never started.
-    // In production it is a free-tier instance that has spun down.
-    return API_BASE.includes("localhost")
+    // In production the instance stayed asleep for longer than we waited.
+    return IS_LOCAL
       ? "Cannot reach the server. Start the backend with: uvicorn app.main:app --reload"
-      : "The server is waking up. This takes up to a minute on the free plan, please try again.";
+      : "The server did not wake up in time. It is still starting, so please try again in a moment.";
   }
   return `Request failed (HTTP ${status}).`;
+}
+
+// --------------------------------------------------------------------------
+// Cold starts
+//
+// A free Render instance spins down after 15 minutes idle and takes the best
+// part of a minute to come back. The old client gave up after ~4 seconds, so
+// the very first request of a session always failed and "try again" simply
+// failed again a few seconds later. Instead we keep retrying for as long as a
+// cold boot realistically takes, and let the UI subscribe to that so it can
+// say "waking up" instead of showing an error the user cannot act on.
+// --------------------------------------------------------------------------
+
+export const IS_LOCAL = /localhost|127\.0\.0\.1/.test(API_BASE);
+
+/** How long to keep trying before admitting defeat. */
+const WAKE_BUDGET_MS = IS_LOCAL ? 6_000 : 90_000;
+
+/** Pauses between attempts, in ms. The tail repeats until the budget runs out. */
+const BACKOFF_MS = [700, 1_500, 3_000, 5_000, 7_000, 9_000];
+
+/** Upstream statuses that mean "still booting", not "this request is wrong". */
+const WAKING_STATUSES = new Set([502, 503, 504]);
+
+type WakeListener = (waking: boolean) => void;
+const wakeListeners = new Set<WakeListener>();
+let wakingCount = 0;
+
+/** Subscribe to cold-start state. Returns an unsubscribe function. */
+export function onServerWaking(listener: WakeListener): () => void {
+  wakeListeners.add(listener);
+  listener(wakingCount > 0);
+  return () => wakeListeners.delete(listener);
+}
+
+function setWaking(waking: boolean) {
+  const before = wakingCount > 0;
+  wakingCount = Math.max(0, wakingCount + (waking ? 1 : -1));
+  const after = wakingCount > 0;
+  if (before !== after) {
+    for (const listener of wakeListeners) listener(after);
+  }
+}
+
+let warmed = false;
+
+/**
+ * Nudge the backend awake without blocking anything.
+ *
+ * Called as soon as the app mounts, so the instance is already booting while
+ * the visitor reads the landing page rather than starting only when they hit
+ * their first button.
+ */
+export function warmUp(): void {
+  if (warmed || typeof window === "undefined") return;
+  warmed = true;
+  void fetch(`${API_BASE}/health`, { cache: "no-store" }).catch(() => {
+    // Expected while the instance is still asleep; the retry loop covers it.
+  });
 }
 
 interface RequestOptions extends Omit<RequestInit, "body"> {
@@ -119,27 +178,46 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     body: body === undefined ? undefined : JSON.stringify(body),
   };
 
-  // Free hosting spins an idle instance down, and the first request then has
-  // to wait for it to boot. A single fetch would simply fail, so retry a few
-  // times with a growing pause rather than showing the user an error.
-  const MAX_ATTEMPTS = 3;
+  // Keep retrying for as long as a cold boot plausibly takes. Both failure
+  // shapes are treated the same: a refused connection while the instance is
+  // down, and a 502/503/504 from the router while it is coming up.
+  const deadline = Date.now() + WAKE_BUDGET_MS;
   let response: Response | undefined;
-  let lastFailure: unknown;
+  let announcedWaking = false;
+  let attempt = 0;
 
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    try {
-      response = await fetch(url.toString(), request);
-      break;
-    } catch (failure) {
-      lastFailure = failure;
-      if (attempt < MAX_ATTEMPTS - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+  try {
+    for (;;) {
+      let stillBooting = false;
+      try {
+        const candidate = await fetch(url.toString(), request);
+        if (!WAKING_STATUSES.has(candidate.status)) {
+          response = candidate;
+          break;
+        }
+        stillBooting = true;
+      } catch {
+        stillBooting = true;
       }
+
+      void stillBooting;
+      const pause = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+      attempt += 1;
+      if (Date.now() + pause >= deadline) break;
+
+      // Only tell the UI once we have actually failed, so a healthy request
+      // never flashes a "waking up" banner.
+      if (!announcedWaking) {
+        announcedWaking = true;
+        setWaking(true);
+      }
+      await new Promise((resolve) => setTimeout(resolve, pause));
     }
+  } finally {
+    if (announcedWaking) setWaking(false);
   }
 
   if (!response) {
-    void lastFailure;
     throw new Error(readError(0, null));
   }
 

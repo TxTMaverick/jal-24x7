@@ -3,7 +3,9 @@
 /** Small shared primitives so every screen looks like the same product. */
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+
+import { IS_LOCAL, onServerWaking } from "@/lib/api";
 
 import { cx } from "@/lib/format";
 import { Check, Minus, Plus, Star } from "./icons";
@@ -291,20 +293,53 @@ export function EmptyState({
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  // The uvicorn hint only helps somebody running the stack on their own
+  // machine. On the deployed site it is noise, so it is shown only locally.
   return (
     <div className="card border-danger-500/25 bg-danger-50/60 px-5 py-6 text-center">
       <p className="text-sm font-medium text-danger-600">{message}</p>
-      <p className="mx-auto mt-1.5 max-w-md text-xs text-ink-500">
-        Make sure the FastAPI backend is running:{" "}
-        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-ink-700">
-          uvicorn app.main:app --reload
-        </code>
-      </p>
+      {IS_LOCAL && (
+        <p className="mx-auto mt-1.5 max-w-md text-xs text-ink-500">
+          Start the backend with{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[11px] text-ink-700">
+            uvicorn app.main:app --reload
+          </code>
+        </p>
+      )}
       {onRetry && (
         <Button variant="secondary" size="sm" className="mt-4" onClick={onRetry}>
           Try again
         </Button>
       )}
+    </div>
+  );
+}
+
+/**
+ * Free-plan cold start banner.
+ *
+ * A sleeping Render instance takes most of a minute to answer its first
+ * request. The API client retries through that automatically, so the only
+ * thing missing was telling the visitor it is happening instead of leaving
+ * them looking at a stalled screen.
+ */
+export function ServerWakingBanner() {
+  const [waking, setWaking] = useState(false);
+
+  useEffect(() => onServerWaking(setWaking), []);
+
+  if (!waking) return null;
+
+  return (
+    <div
+      role="status"
+      className="sticky top-16 z-40 border-b border-accent-500/25 bg-accent-400/15 px-4 py-2.5 backdrop-blur"
+    >
+      <p className="mx-auto flex max-w-7xl items-center gap-2.5 text-xs font-medium text-accent-600 sm:text-sm">
+        <Spinner className="size-4 shrink-0" />
+        Waking the server up. The free plan puts it to sleep when idle, so the first
+        request takes up to a minute. Nothing to do, this page will fill in by itself.
+      </p>
     </div>
   );
 }

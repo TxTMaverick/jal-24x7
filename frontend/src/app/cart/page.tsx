@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Cart as CartIcon, Check, Trash, Truck } from "@/components/icons";
 import { Badge, Button, EmptyState, QuantityStepper } from "@/components/ui";
 import { api } from "@/lib/api";
+import { FREE_DELIVERY_THRESHOLD } from "@/lib/pricing";
 import { litres, money } from "@/lib/format";
 import type { Quote } from "@/lib/types";
 import { useCart } from "@/store/cart";
@@ -193,7 +194,7 @@ export default function CartPage() {
 
               {quote.delivery_fee > 0 && (
                 <p className="rounded-lg bg-brand-50 p-2.5 text-xs text-brand-700">
-                  Add {money(500 - quote.subtotal)} more to unlock free delivery.
+                  Add {money(FREE_DELIVERY_THRESHOLD - quote.subtotal)} more to unlock free delivery.
                 </p>
               )}
               {quote.discount > 0 && (

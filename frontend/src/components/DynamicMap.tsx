@@ -9,13 +9,18 @@
  */
 
 import dynamic from "next/dynamic";
+import type { ComponentProps } from "react";
 
 import { cx } from "@/lib/format";
-import type { MapMarker } from "./MapView";
+// Type-only: a value import here would pull Leaflet into the server bundle
+// and defeat the `ssr: false` below, which is the whole point of this file.
+import type { default as MapViewType, MapMarker } from "./MapView";
 
 export type { MapMarker };
 
-const MapView = dynamic(() => import("./MapView"), {
+type MapProps = ComponentProps<typeof MapViewType>;
+
+const LazyMapView = dynamic(() => import("./MapView"), {
   ssr: false,
   loading: () => <MapSkeleton />,
 });
@@ -33,4 +38,17 @@ function MapSkeleton({ className }: { className?: string }) {
   );
 }
 
-export default MapView;
+/**
+ * Reserves the caller's height while the Leaflet chunk downloads.
+ *
+ * `dynamic`'s own `loading` element cannot see the props, so on its own the
+ * placeholder collapsed to its minimum and the page jumped once the map
+ * arrived. Wrapping it keeps the sized box on screen throughout.
+ */
+export default function DynamicMap(props: MapProps) {
+  return (
+    <div className={cx("relative", props.className)}>
+      <LazyMapView {...props} className="absolute inset-0 size-full" />
+    </div>
+  );
+}

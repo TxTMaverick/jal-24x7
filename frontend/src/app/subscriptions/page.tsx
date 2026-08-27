@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { Building, Camper, Check, Repeat } from "@/components/icons";
+import { Building, Camper, Check, Home, Repeat, UserIcon } from "@/components/icons";
 import {
   Badge,
   Button,
@@ -24,9 +24,57 @@ import { useToast } from "@/store/toast";
 type PlanType = "camper" | "society_tanker";
 
 const FREQUENCIES = [
-  { key: "daily", label: "Every day", detail: "30 deliveries / month", save: "12% off" },
-  { key: "alternate", label: "Alternate days", detail: "15 deliveries / month", save: "8% off" },
-  { key: "weekly", label: "Weekly", detail: "4 deliveries / month", save: "5% off" },
+  { key: "daily", label: "Every day", detail: "30 / month", save: "12% off" },
+  { key: "alternate", label: "Alternate days", detail: "15 / month", save: "8% off" },
+  { key: "weekly", label: "Weekly", detail: "4 / month", save: "5% off" },
+  { key: "monthly", label: "Monthly", detail: "1 / month", save: "3% off" },
+];
+
+type Segment = "individual" | "family" | "society";
+
+/**
+ * Who the plan is for.
+ *
+ * This only sizes the plan and picks sensible defaults. The price always
+ * comes from the product or tanker tier, never from the segment, so nobody
+ * is charged more for ticking a different box.
+ */
+const SEGMENTS: {
+  key: Segment;
+  label: string;
+  detail: string;
+  icon: typeof Camper;
+  quantity: number;
+  frequency: string;
+  plan: PlanType;
+}[] = [
+  {
+    key: "individual",
+    label: "Individual",
+    detail: "One person, hostel room or desk",
+    icon: UserIcon,
+    quantity: 1,
+    frequency: "weekly",
+    plan: "camper",
+  },
+  {
+    key: "family",
+    label: "Family",
+    detail: "A household of three to six",
+    icon: Home,
+    quantity: 2,
+    frequency: "alternate",
+    plan: "camper",
+  },
+  {
+    key: "society",
+    label: "Society",
+    detail: "RWA, hostel, school or office block",
+    icon: Building,
+    quantity: 1,
+    frequency: "weekly",
+    plan: "society_tanker",
+  },
 ];
 
 const WINDOWS = ["06:00-08:00", "07:00-09:00", "09:00-11:00", "17:00-19:00", "19:00-21:00"];
@@ -42,6 +90,7 @@ export default function SubscriptionsPage() {
   const { success, error: toastError } = useToast();
 
   const [plan, setPlan] = useState<PlanType>("camper");
+  const [segment, setSegment] = useState<Segment>("family");
   const [campers, setCampers] = useState<Product[]>([]);
   const [tiers, setTiers] = useState<TankerTier[]>([]);
   const [mine, setMine] = useState<Subscription[]>([]);
@@ -133,6 +182,7 @@ export default function SubscriptionsPage() {
     try {
       await api.createSubscription({
         plan_type: plan,
+        segment,
         frequency,
         quantity,
         product_id: plan === "camper" ? productId : null,
@@ -175,6 +225,57 @@ export default function SubscriptionsPage() {
         title="Subscriptions & Society Contracts"
         subtitle="Set it once and stop reordering. Recurring plans are cheaper per delivery than one-off orders, and you can pause any time."
       />
+
+      {/* Who is this for. Sizes the plan and picks the sensible defaults. */}
+      <div className="mb-5">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+          Who is this plan for?
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {SEGMENTS.map((option) => {
+            const active = segment === option.key;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => {
+                  setSegment(option.key);
+                  setPlan(option.plan);
+                  setQuantity(option.quantity);
+                  setFrequency(option.frequency);
+                }}
+                aria-pressed={active}
+                className={cx(
+                  "card flex items-center gap-3 p-4 text-left transition-all",
+                  active
+                    ? "ring-2 ring-brand-500 ring-offset-1"
+                    : "hover:-translate-y-0.5 hover:shadow-(--shadow-lift)",
+                )}
+              >
+                <span
+                  className={cx(
+                    "grid size-10 shrink-0 place-items-center rounded-xl transition-colors",
+                    active ? "bg-brand-600 text-white" : "bg-ink-50 text-ink-500",
+                  )}
+                >
+                  <option.icon className="size-5" />
+                </span>
+                <span className="min-w-0">
+                  <span
+                    className={cx(
+                      "block text-sm font-semibold",
+                      active ? "text-brand-700" : "text-ink-900",
+                    )}
+                  >
+                    {option.label}
+                  </span>
+                  <span className="block truncate text-xs text-ink-500">{option.detail}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Plan switch */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2">
@@ -232,7 +333,7 @@ export default function SubscriptionsPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
               2. How often?
             </h2>
-            <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {FREQUENCIES.map((option) => (
                 <button
                   key={option.key}

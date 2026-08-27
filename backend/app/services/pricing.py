@@ -30,16 +30,28 @@ BULK_SLABS: list[tuple[float, float]] = [
 
 # Tanker distance surcharge.
 TANKER_FREE_RADIUS_KM = 8.0
-TANKER_PER_KM_SURCHARGE = 12.0
+TANKER_PER_KM_SURCHARGE = 10.0
 
 # A society tanker contract is repeat business, so it is priced below spot rate.
 SOCIETY_CONTRACT_DISCOUNT = 0.08
 
 # Recurring camper subscriptions, by frequency.
+# Deliveries a supplier can plan for earns a discount; the more predictable
+# the route, the bigger it is. A once-a-month top-up plans the least, so it
+# earns the least.
 SUBSCRIPTION_DISCOUNTS: dict[str, float] = {
     "daily": 0.12,
     "alternate": 0.08,
     "weekly": 0.05,
+    "monthly": 0.03,
+}
+
+# How many deliveries each cadence works out to over a 30-day cycle.
+DELIVERIES_PER_CYCLE: dict[str, int] = {
+    "daily": 30,
+    "alternate": 15,
+    "weekly": 4,
+    "monthly": 1,
 }
 
 
@@ -180,7 +192,7 @@ def subscription_cycle_cost(
 
     Returns (cycle cost after discount, discount rate applied).
     """
-    deliveries_per_month = {"daily": 30, "alternate": 15, "weekly": 4}.get(frequency, 30)
+    deliveries_per_month = DELIVERIES_PER_CYCLE.get(frequency, 30)
     rate = SUBSCRIPTION_DISCOUNTS.get(frequency, 0.0)
     gross = unit_price * quantity * deliveries_per_month
     return round(gross * (1 - rate), 2), rate

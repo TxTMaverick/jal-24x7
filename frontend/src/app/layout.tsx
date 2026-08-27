@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ServerWakingBanner } from "@/components/ui";
 import { AuthProvider } from "@/store/auth";
 import { CartProvider } from "@/store/cart";
 import { ToastProvider } from "@/store/toast";
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <CartProvider>
               <div className="flex min-h-dvh flex-col">
                 <Header />
+                <ServerWakingBanner />
                 <main className="flex-1">{children}</main>
                 <Footer />
               </div>

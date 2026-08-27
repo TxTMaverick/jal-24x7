@@ -120,6 +120,44 @@ def candidate_vendors(
     return results
 
 
+def nearest_vendors(
+    db: Session,
+    *,
+    lat: float,
+    lng: float,
+    limit: int = 12,
+    required_capacity_l: int | None = None,
+    needs_tanker: bool = False,
+    verified_only: bool = True,
+) -> list[tuple[Vendor, float]]:
+    """Closest vendors with no distance limit at all.
+
+    The radius filter is the right behaviour for dispatch, but it makes the
+    marketplace look broken for anyone browsing from a city the network has
+    not reached yet. This backs the "nothing in range" fallback: same hard
+    filters on capability and verification, distance ordering only.
+    """
+    stmt = select(Vendor)
+    if verified_only:
+        stmt = stmt.where(Vendor.is_verified.is_(True))
+    if needs_tanker:
+        stmt = stmt.where(Vendor.supports_tankers.is_(True))
+    else:
+        stmt = stmt.where(Vendor.supports_products.is_(True))
+    if required_capacity_l is not None:
+        stmt = stmt.where(
+            Vendor.min_capacity_l <= required_capacity_l,
+            Vendor.max_capacity_l >= required_capacity_l,
+        )
+
+    scored = [
+        (vendor, haversine_km(lat, lng, vendor.lat, vendor.lng))
+        for vendor in db.scalars(stmt)
+    ]
+    scored.sort(key=lambda pair: pair[1])
+    return scored[:limit]
+
+
 def rank_vendors(
     candidates: list[tuple[Vendor, float]],
     *,

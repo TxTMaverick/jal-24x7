@@ -1,22 +1,52 @@
 "use client";
 
+/**
+ * Site header.
+ *
+ * Deliberately minimal: a wordmark, the cart, the account menu and one
+ * hamburger. Every destination lives inside the drawer at every breakpoint,
+ * so the top bar never turns into a row of competing links.
+ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { warmUp } from "@/lib/api";
 import { cx } from "@/lib/format";
 import { useAuth } from "@/store/auth";
 import { useCart } from "@/store/cart";
-import { Cart, Close, Menu, UserIcon, WaterDrop } from "./icons";
+import {
+  Building,
+  Cart,
+  Close,
+  Jar,
+  Menu,
+  Phone,
+  Repeat,
+  Truck,
+  UserIcon,
+  WaterDrop,
+  type IconProps,
+} from "./icons";
 import { SplashOverlay } from "./Splash";
 
-const NAV = [
-  { href: "/products", label: "All Products" },
-  { href: "/tankers", label: "Water Tankers" },
-  { href: "/suppliers", label: "Suppliers" },
-  { href: "/subscriptions", label: "Subscriptions" },
-  { href: "/events", label: "Events" },
-  { href: "/contact", label: "Contact" },
+interface NavItem {
+  href: string;
+  label: string;
+  detail: string;
+  icon: (props: IconProps) => React.ReactElement;
+}
+
+/** The drawer, in the order the sections run on the site. */
+const NAV: NavItem[] = [
+  { href: "/#about", label: "About", detail: "What JAL 24×7 is", icon: WaterDrop },
+  { href: "/products", label: "Products", detail: "Cans, bottles, campers", icon: Jar },
+  { href: "/tankers", label: "Water Tankers", detail: "Booking and availability", icon: Truck },
+  { href: "/suppliers", label: "Suppliers", detail: "Verified operators near you", icon: Building },
+  { href: "/subscriptions", label: "Subscriptions", detail: "Monthly and recurring", icon: Repeat },
+  { href: "/orders", label: "Orders", detail: "Track and reorder", icon: Cart },
+  { href: "/contact", label: "Contact", detail: "Helplines and support", icon: Phone },
 ];
 
 export function Header() {
@@ -28,13 +58,44 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
+  // Nudge the backend awake the moment the app mounts, so a sleeping free
+  // instance is already booting while the visitor reads the landing page
+  // rather than starting only when they press their first button.
+  useEffect(() => {
+    warmUp();
+  }, []);
+
   // Close any open panel when the route changes.
   useEffect(() => {
     setMenuOpen(false);
     setAccountOpen(false);
   }, [pathname]);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // The drawer covers the page, so the page behind it must not scroll.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [menuOpen]);
+
+  // Escape closes the drawer, as every drawer should.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const isActive = (href: string) => {
+    const path = href.split("#")[0];
+    if (path === "/") return pathname === "/";
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
 
   return (
     <>
@@ -56,23 +117,6 @@ export function Header() {
               JAL <span className="text-brand-600">24×7</span>
             </span>
           </button>
-
-          <nav className="ml-4 hidden items-center gap-1 lg:flex">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cx(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive(item.href)
-                    ? "bg-brand-50 text-brand-700"
-                    : "text-ink-600 hover:bg-ink-50 hover:text-ink-900",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
             <Link
@@ -169,44 +213,115 @@ export function Header() {
               onClick={() => setMenuOpen((open) => !open)}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
-              className="grid size-10 place-items-center rounded-xl text-ink-600 transition-colors hover:bg-ink-50 lg:hidden"
+              className={cx(
+                "grid size-10 place-items-center rounded-xl transition-colors",
+                menuOpen
+                  ? "bg-brand-50 text-brand-700"
+                  : "text-ink-600 hover:bg-ink-50 hover:text-ink-900",
+              )}
             >
               {menuOpen ? <Close className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
         </div>
+      </header>
 
-        {menuOpen && (
-          <nav className="border-t border-ink-100 bg-white px-4 py-3 lg:hidden">
-            <ul className="flex flex-col gap-0.5">
-              {NAV.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
+      {menuOpen && (
+        <NavDrawer
+          items={NAV}
+          isActive={isActive}
+          signedIn={Boolean(user)}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+/** Full-height slide-in panel holding every destination on the site. */
+function NavDrawer({
+  items,
+  isActive,
+  signedIn,
+  onClose,
+}: {
+  items: NavItem[];
+  isActive: (href: string) => boolean;
+  signedIn: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60]">
+      <div
+        className="absolute inset-0 bg-ink-900/35 backdrop-blur-sm animate-(--animate-fade-up)"
+        onClick={onClose}
+        aria-hidden
+      />
+
+      <nav
+        aria-label="Site menu"
+        className="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-white shadow-(--shadow-lift) animate-(--animate-slide-in)"
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-ink-100 px-4">
+          <span className="text-sm font-semibold text-ink-400">Menu</span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="grid size-10 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-900"
+          >
+            <Close className="size-5" />
+          </button>
+        </div>
+
+        <ul className="flex-1 overflow-y-auto p-3">
+          {items.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={onClose}
+                className={cx(
+                  "flex items-center gap-3 rounded-xl px-3 py-3 transition-colors",
+                  isActive(item.href) ? "bg-brand-50" : "hover:bg-ink-50",
+                )}
+              >
+                <span
+                  className={cx(
+                    "grid size-10 shrink-0 place-items-center rounded-xl transition-colors",
+                    isActive(item.href)
+                      ? "bg-brand-600 text-white"
+                      : "bg-ink-50 text-ink-500",
+                  )}
+                >
+                  <item.icon className="size-5" />
+                </span>
+                <span className="min-w-0">
+                  <span
                     className={cx(
-                      "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActive(item.href)
-                        ? "bg-brand-50 text-brand-700"
-                        : "text-ink-600 hover:bg-ink-50",
+                      "block text-sm font-semibold",
+                      isActive(item.href) ? "text-brand-700" : "text-ink-900",
                     )}
                   >
                     {item.label}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/orders"
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-50"
-                >
-                  My Orders
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        )}
-      </header>
-    </>
+                  </span>
+                  <span className="block truncate text-xs text-ink-400">{item.detail}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="shrink-0 border-t border-ink-100 p-3">
+          <Link
+            href={signedIn ? "/products" : "/login"}
+            onClick={onClose}
+            className="flex h-12 items-center justify-center rounded-xl bg-brand-600 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            {signedIn ? "Order water now" : "Login / Sign up"}
+          </Link>
+        </div>
+      </nav>
+    </div>
   );
 }
 

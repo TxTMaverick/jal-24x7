@@ -10,7 +10,7 @@ from ..database import get_db
 from ..models import Product, Subscription, TankerTier, User
 from ..schemas import SimpleMessage, SubscriptionCreate, SubscriptionOut
 from ..security import current_user
-from ..services.pricing import subscription_cycle_cost
+from ..services.pricing import DELIVERIES_PER_CYCLE, subscription_cycle_cost
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -108,7 +108,7 @@ def estimate_plan(
         unit_price = tier.base_price
 
     cycle_cost, rate = subscription_cycle_cost(unit_price, quantity, frequency)
-    deliveries = {"daily": 30, "alternate": 15, "weekly": 4}.get(frequency, 30)
+    deliveries = DELIVERIES_PER_CYCLE.get(frequency, 30)
     return {
         "unit_price": unit_price,
         "quantity": quantity,

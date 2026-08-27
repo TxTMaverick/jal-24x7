@@ -366,6 +366,8 @@ class Subscription(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     plan_type: Mapped[str] = mapped_column(String(30), index=True)
+    # individual | family | society. Sizing and copy, not pricing.
+    segment: Mapped[str] = mapped_column(String(20), default="individual")
 
     frequency: Mapped[str] = mapped_column(String(20), default="daily")
     quantity: Mapped[int] = mapped_column(Integer, default=1)

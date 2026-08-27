@@ -73,6 +73,8 @@ export interface VendorMatch {
   eta_minutes: number;
   reasons: string[];
   breakdown: Record<string, number>;
+  /** True when nothing was inside the radius and this is a widened result. */
+  out_of_range: boolean;
 }
 
 export interface User {
@@ -189,6 +191,8 @@ export interface Tracking {
 export interface Subscription {
   id: number;
   plan_type: "camper" | "society_tanker";
+  /** Who the plan is sized for: individual, family or society. */
+  segment: string;
   frequency: string;
   quantity: number;
   contact_name: string;

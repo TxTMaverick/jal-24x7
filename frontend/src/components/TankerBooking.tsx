@@ -67,9 +67,16 @@ export interface TankerModuleCopy {
 export function TankerBooking({
   segment,
   copy,
+  embedded = false,
 }: {
   segment: "individual" | "society";
   copy: TankerModuleCopy;
+  /**
+   * Rendered inside another page rather than as its own route. Drops the
+   * back-link, the page heading and the outer padding, so the tanker module
+   * page can host a real booking form without duplicating any of this logic.
+   */
+  embedded?: boolean;
 }) {
   const { addTanker } = useCart();
   const { success, error: toastError } = useToast();
@@ -150,21 +157,28 @@ export function TankerBooking({
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-12"}>
         <ErrorState message={error} onRetry={() => void load()} />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-4">
-        <Link href="/tankers" className="text-sm font-medium text-brand-600 hover:text-brand-700">
-          ← Back to tanker options
-        </Link>
-      </div>
+    <div className={embedded ? "" : "mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"}>
+      {!embedded && (
+        <>
+          <div className="mb-4">
+            <Link
+              href="/tankers"
+              className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            >
+              ← Back to tanker options
+            </Link>
+          </div>
 
-      <PageHeader eyebrow={copy.eyebrow} title={copy.title} subtitle={copy.subtitle} />
+          <PageHeader eyebrow={copy.eyebrow} title={copy.title} subtitle={copy.subtitle} />
+        </>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
         <div className="space-y-6">

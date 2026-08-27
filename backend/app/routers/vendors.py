@@ -12,7 +12,7 @@ from ..config import settings
 from ..database import get_db
 from ..models import Vendor
 from ..schemas import VendorMatchOut, VendorOut
-from ..services.matching import candidate_vendors, rank_vendors
+from ..services.matching import candidate_vendors, nearest_vendors, rank_vendors
 
 router = APIRouter(prefix="/vendors", tags=["marketplace"])
 
@@ -46,6 +46,28 @@ def nearby_vendors(
     )
     matches = rank_vendors(candidates, radius_km=radius)
 
+    # Nothing inside the radius: fall back to the nearest suppliers anywhere on
+    # the network rather than returning an empty marketplace. They are ranked
+    # against their own spread so the ordering still means something, and each
+    # one is flagged so the UI can say plainly that it is outside the radius.
+    fallback = False
+    if not matches:
+        widened = nearest_vendors(
+            db,
+            lat=lat,
+            lng=lng,
+            limit=limit,
+            required_capacity_l=capacity_l,
+            needs_tanker=needs_tanker,
+            verified_only=verified_only,
+        )
+        if widened:
+            fallback = True
+            furthest = max(distance for _, distance in widened)
+            matches = rank_vendors(widened, radius_km=max(furthest, radius))
+            for match in matches:
+                match.reasons.insert(0, f"Nearest supplier, {match.distance_km:.0f} km away")
+
     if sort == "nearest":
         matches.sort(key=lambda m: m.distance_km)
     elif sort == "price":
@@ -61,6 +83,7 @@ def nearby_vendors(
             eta_minutes=m.eta_minutes,
             reasons=m.reasons,
             breakdown=m.breakdown,
+            out_of_range=fallback,
         )
         for m in matches[:limit]
     ]

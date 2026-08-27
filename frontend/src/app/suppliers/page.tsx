@@ -6,20 +6,21 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import DynamicMap, { type MapMarker } from "@/components/DynamicMap";
-import { Check, Clock, MapPin, Phone, Shield, Truck } from "@/components/icons";
+import { Building, Check, Clock, MapPin, Phone, Shield, Truck } from "@/components/icons";
 
 import {
   Button,
   EmptyState,
   ErrorState,
   PageHeader,
+  Badge,
   Rating,
   VerifiedBadge,
   inputClass,
 } from "@/components/ui";
 import { api } from "@/lib/api";
 import { cx, eta, litres, money } from "@/lib/format";
-import type { VendorMatch } from "@/lib/types";
+import type { VendorMatch, WaterDepartment } from "@/lib/types";
 import { useToast } from "@/store/toast";
 
 /** Rajwada, Indore. the fallback pin when geolocation is unavailable. */
@@ -49,6 +50,13 @@ export default function SuppliersPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  // Where the pin actually resolves to, and the zone office covering it.
+  const [place, setPlace] = useState<string | null>(null);
+  const [zone, setZone] = useState<WaterDepartment | null>(null);
+
+  // True when the radius held nothing and the backend widened the search.
+  const outOfRange = matches.length > 0 && matches[0].out_of_range;
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -73,6 +81,31 @@ export default function SuppliersPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Name the pin and find the zone office covering it. Both fail soft: they
+  // are context, and neither should be able to break the supplier list.
+  useEffect(() => {
+    let cancelled = false;
+
+    api
+      .reverseGeocode(pin[0], pin[1])
+      .then((info) => {
+        if (cancelled || !info.available) return;
+        setPlace([info.area, info.city].filter(Boolean).join(", ") || info.city);
+      })
+      .catch(() => {});
+
+    api
+      .nearestDepartment(pin[0], pin[1])
+      .then((department) => {
+        if (!cancelled) setZone(department);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pin]);
 
   const useMyLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -136,6 +169,70 @@ export default function SuppliersPage() {
           </Button>
         }
       />
+
+      {/* Detected zone: what the pin resolved to, and who covers it. */}
+      <div className="card mb-4 flex flex-wrap items-center gap-x-6 gap-y-3 p-4">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+            <MapPin className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-400">
+              Your location
+            </p>
+            <p className="truncate text-sm font-semibold text-ink-900">
+              {place ?? (usingRealLocation ? "Locating…" : "Indore city centre (default)")}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-success-50 text-success-600">
+            <Building className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-400">Your zone</p>
+            {zone ? (
+              <p className="truncate text-sm font-semibold text-ink-900">
+                {zone.zone} · {zone.city}
+                {zone.tanker_request_line && (
+                  <a
+                    href={`tel:${zone.tanker_request_line}`}
+                    className="ml-2 font-medium text-brand-600 hover:text-brand-700"
+                  >
+                    {zone.tanker_request_line}
+                  </a>
+                )}
+              </p>
+            ) : (
+              <p className="text-sm text-ink-400">Detecting…</p>
+            )}
+          </div>
+        </div>
+
+        <div className="ml-auto">
+          <Badge tone={outOfRange ? "warn" : "success"}>
+            {outOfRange ? "Outside service area" : "In service area"}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Honest about what happened when the radius came up empty. */}
+      {outOfRange && !loading && (
+        <div className="mb-4 flex items-start gap-3 rounded-2xl bg-accent-400/10 p-4 ring-1 ring-accent-500/25">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-accent-600 shadow-sm">
+            <Truck className="size-5" />
+          </span>
+          <p className="text-xs leading-relaxed text-ink-600 sm:text-sm">
+            <span className="font-semibold text-ink-900">
+              JAL 24×7 currently delivers in Indore only.
+            </span>{" "}
+            Nothing was found within {radius} km of your pin, so these are our nearest
+            suppliers instead. They are real operators with real rates, but they are too far
+            to deliver to you today.
+          </p>
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="card mb-5 flex flex-wrap items-center gap-3 p-3">
@@ -205,8 +302,8 @@ export default function SuppliersPage() {
             ) : matches.length === 0 ? (
               <EmptyState
                 icon={<Truck className="size-6" />}
-                title="No suppliers in range"
-                description="Try widening the radius, or turning off the 'verified only' filter to see newly registered operators."
+                title="No suppliers match these filters"
+                description="Try widening the radius, or turning off 'verified only' to include newly registered operators."
                 action={
                   <Button variant="secondary" onClick={() => setRadius(50)}>
                     Widen to 50 km
@@ -217,7 +314,8 @@ export default function SuppliersPage() {
               <>
                 <p className="mb-3 text-sm text-ink-500">
                   <span className="font-semibold text-ink-900">{matches.length}</span> supplier
-                  {matches.length === 1 ? "" : "s"} within {radius} km
+                  {matches.length === 1 ? "" : "s"}{" "}
+                  {outOfRange ? "nearest to you" : `within ${radius} km`}
                 </p>
                 <div className="space-y-3">
                   {matches.map((match) => (

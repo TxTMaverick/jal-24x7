@@ -44,9 +44,11 @@ class Settings(BaseSettings):
 
     # --- Business rules -----------------------------------------------------
     gst_rate: float = 0.18
-    free_delivery_threshold: float = 500.0
-    base_delivery_fee: float = 40.0
-    express_delivery_fee: float = 80.0
+    # Scaled to the catalogue: a 20L jar lists at Rs 30, so a Rs 40 delivery
+    # fee would have cost more than the water. Five jars now ship free.
+    free_delivery_threshold: float = 150.0
+    base_delivery_fee: float = 15.0
+    express_delivery_fee: float = 30.0
     service_radius_km: float = 25.0
 
     @property

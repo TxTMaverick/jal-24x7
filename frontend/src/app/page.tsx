@@ -1,21 +1,21 @@
 "use client";
 
 /**
- * Screen 1. Landing page.
+ * Landing page.
  *
- * One scrollable page with its own sticky section navigation:
- *   Hero -> Problem -> Solution -> Quick order -> Why us -> FAQ -> Wordmark
+ * Kept deliberately short: the intro animation, what JAL 24x7 is, the problem
+ * and the answer to it in one glance, the four modules, and a quick order
+ * form. Everything else lives behind the hamburger, so this page stays a
+ * front door rather than a site map.
  */
 
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { BigWordmark, FaqAccordion, MadeInIndia, SectionNav, type FaqItem } from "@/components/Brand";
 import {
   Bottle,
   Building,
-  Calendar,
   Camper,
   Check,
   Clock,
@@ -31,289 +31,100 @@ import { SplashOverlay, useFirstVisitSplash } from "@/components/Splash";
 import { Badge, Button, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { cx, money } from "@/lib/format";
-import type { Product, WeatherInfo } from "@/lib/types";
+import type { Product } from "@/lib/types";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/store/toast";
 
-const SECTIONS = [
-  { id: "top", label: "Home" },
-  { id: "problem", label: "The Problem" },
-  { id: "solution", label: "Our Solution" },
-  { id: "order", label: "Quick Order" },
-  { id: "why", label: "Why JAL 24×7" },
-  { id: "faq", label: "FAQ" },
-];
-
-const INDORE: [number, number] = [22.7196, 75.8577];
-
-const SERVICES = [
+const MODULES = [
   {
     href: "/products?category=can",
     image: "/images/products/can-20l.jpg",
     icon: Jar,
-    title: "20L Water Cans",
-    blurb: "The everyday jar for homes, offices and hostels. Empty can exchanged on delivery.",
-    price: "From ₹60",
-  },
-  {
-    href: "/products?category=bottle",
-    image: "/images/products/bottle-500ml.jpg",
-    icon: Bottle,
-    title: "Bottles & Packs",
-    blurb: "Sealed 500ml, 1L and 2L packs for meetings, travel and functions.",
-    price: "From ₹216",
+    title: "Cans & Bottles",
+    blurb: "20L jars, sealed bottle packs and office supply.",
+    price: "From ₹30",
   },
   {
     href: "/products?category=camper",
     image: "/images/products/camper-party.jpg",
     icon: Camper,
     title: "Party Campers",
-    blurb: "Chilled 50L to 200L campers with taps and stands for events.",
-    price: "From ₹320",
+    blurb: "Chilled 50L to 200L campers with taps and stands.",
+    price: "From ₹180",
   },
   {
     href: "/tankers",
     image: "/images/products/tanker-yellow.jpg",
     icon: Truck,
     title: "Water Tankers",
-    blurb: "1,000L to 12,000L bulk trips for homes, societies and sites.",
-    price: "From ₹450",
-  },
-];
-
-const PROBLEMS = [
-  {
-    icon: Phone,
-    title: "You have to phone around",
-    body: "Finding water means calling four or five numbers passed on by neighbours, hoping somebody picks up.",
+    blurb: "1,000L to 12,000L trips for homes and societies.",
+    price: "From ₹350",
   },
   {
-    icon: Clock,
-    title: "Nobody works late",
-    body: "Most suppliers shut by evening. A tank that runs dry at 10 pm stays dry until morning.",
-  },
-  {
-    icon: Shield,
-    title: "No idea what you are paying for",
-    body: "Prices change with the caller. There is no way to compare rates, capacity or water quality first.",
-  },
-  {
-    icon: MapPin,
-    title: "No idea when it arrives",
-    body: "Once the call ends you wait. No confirmation, no vehicle number, no arrival time.",
-  },
-];
-
-const SOLUTIONS = [
-  {
-    icon: WaterDrop,
-    title: "Everything in one place",
-    body: "Cans, bottles, campers and tankers from every verified supplier near you, on a single screen.",
-  },
-  {
-    icon: Clock,
-    title: "Open around the clock",
-    body: "Book at any hour. Night shift drivers are listed separately so urgent orders reach someone awake.",
-  },
-  {
-    icon: Shield,
-    title: "Prices you can compare",
-    body: "Every rate, capacity, rating and water source is published up front. No negotiating on the phone.",
-  },
-  {
-    icon: MapPin,
-    title: "Watch it come to you",
-    body: "Live map tracking from the moment you pay, with the driver's name, vehicle number and arrival time.",
-  },
-];
-
-const WHY_US = [
-  {
-    icon: Shield,
-    title: "Only verified suppliers",
-    body: "Every operator clears a KYC check before they can be listed. Unverified applicants never appear in search.",
-    stat: "100% KYC checked",
-  },
-  {
-    icon: Truck,
-    title: "You see the driver",
-    body: "Name, vehicle number, licence, languages spoken and which operator they work under. Before they arrive.",
-    stat: "14 drivers on roster",
-  },
-  {
-    icon: MapPin,
-    title: "Genuinely live tracking",
-    body: "A real WebSocket feed, not a page that refreshes. The map moves as the vehicle moves.",
-    stat: "Updates every 2s",
-  },
-  {
-    icon: Building,
-    title: "One can to twelve thousand litres",
-    body: "The same platform serves a student ordering one jar and an RWA running a monthly tanker contract.",
-    stat: "20L to 12,000L",
-  },
-  {
+    href: "/subscriptions",
+    image: "/images/products/camper-office.jpg",
     icon: Repeat,
-    title: "Subscriptions that save money",
-    body: "Set a daily or weekly delivery once and stop reordering. Recurring plans cost up to 12 percent less.",
-    stat: "Up to 12% off",
-  },
-  {
-    icon: Phone,
-    title: "Government helplines built in",
-    body: "Zone-wise Jal Sansthan numbers for tanker requests, complaints and billing, detected from your location.",
-    stat: "8 zones covered",
+    title: "Subscriptions",
+    blurb: "Daily, weekly or monthly delivery on autopilot.",
+    price: "Up to 12% off",
   },
 ];
 
-const FAQS: FaqItem[] = [
+/** Three problems, each answered directly by the row beside it. */
+const PAIRS = [
   {
-    question: "How quickly can I get water delivered?",
-    answer:
-      "A 20 litre can typically reaches you in 35 to 45 minutes inside Indore city limits. Bottle packs follow the same window. Campers are same day or scheduled, and tankers are scheduled because a trip has to be planned around the operator's route. The exact estimate for your pin is shown before you pay.",
+    icon: Phone,
+    problem: "You phone around four numbers and hope somebody picks up.",
+    solution: "Every verified supplier near you, with rates, on one screen.",
   },
   {
-    question: "How is the delivery charge calculated?",
-    answer:
-      "Orders above ₹500 ship free. Below that a flat ₹40 applies, or ₹80 if you choose express dispatch. Tankers work differently: the trip rate already covers delivery within 8 km, and beyond that a distance surcharge of ₹12 per kilometre is added as its own visible line. GST at 18 percent applies on the total.",
+    icon: Clock,
+    problem: "Most suppliers shut by evening. A tank dry at 10 pm stays dry.",
+    solution: "Book at any hour, with night-shift drivers listed separately.",
   },
   {
-    question: "Do I need to return the empty can?",
-    answer:
-      "Yes. The 20 litre jar is exchanged, so hand the empty one to the delivery partner when the full can arrives. If it is your first order you can request a new jar and a one-time refundable deposit is collected instead.",
-  },
-  {
-    question: "Can I book a tanker for a society or an apartment block?",
-    answer:
-      "Society bookings have their own module with contract pricing, roughly 8 percent below the individual spot rate. You can book a single trip or set up a recurring schedule with your preferred delivery window, number of flats and tank capacity.",
-  },
-  {
-    question: "How do you check water quality?",
-    answer:
-      "Every supplier declares their water source, purification stages and certifications during KYC, and those are shown on their profile. JAL 24×7 does not operate its own testing laboratory, so we publish what suppliers declare rather than claiming to verify it ourselves. For a formal potability report, the government zone office in our directory is the right contact.",
-  },
-  {
-    question: "Which payment methods can I use?",
-    answer:
-      "UPI apps such as Google Pay, PhonePe and Paytm, any UPI ID, credit and debit cards, net banking with eight major banks, or cash on delivery. This build runs in test mode, so no money actually moves and no card details are stored.",
-  },
-  {
-    question: "Can I cancel an order after paying?",
-    answer:
-      "You can cancel any time before the vehicle leaves the depot, and reserved stock goes straight back. Once the status reaches out for delivery the trip is already under way and cancellation is no longer possible from the app.",
-  },
-  {
-    question: "How much water should I order for a function?",
-    answer:
-      "The usual planning figure is about 1.5 litres per guest for a four hour function, increased by roughly a quarter in summer. The event booking page has a calculator that works this out and puts you in touch with suppliers near the venue who staff an event desk.",
+    icon: MapPin,
+    problem: "Once the call ends you wait, with no idea when it arrives.",
+    solution: "Live map tracking with the driver, vehicle number and ETA.",
   },
 ];
 
 export default function HomePage() {
   const [splash, dismissSplash] = useFirstVisitSplash();
-  const [featured, setFeatured] = useState<Product[]>([]);
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
-
-  useEffect(() => {
-    api
-      .products({ sort: "price_asc" })
-      .then((all) => {
-        const picks: Product[] = [];
-        for (const category of ["can", "bottle", "camper"]) {
-          const match = all.find((p) => p.category === category);
-          if (match) picks.push(match);
-        }
-        setFeatured(picks);
-      })
-      .catch(() => setFeatured([]));
-
-    api
-      .weather(INDORE[0], INDORE[1])
-      .then(setWeather)
-      .catch(() => setWeather(null));
-  }, []);
 
   return (
     <>
       <SplashOverlay visible={splash} onDone={dismissSplash} />
 
       {/* ================= HERO ================= */}
-      <section id="top" className="relative overflow-hidden bg-linear-to-b from-white via-brand-50 to-brand-50">
+      <section className="relative overflow-hidden bg-linear-to-b from-white via-brand-50 to-brand-50">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-brand-200/40 blur-3xl"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-20 size-80 rounded-full bg-cyan-200/35 blur-3xl"
-        />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14 lg:pb-20 lg:pt-16 lg:px-8">
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-14 lg:pb-20 lg:pt-16 lg:px-8">
           <div className="animate-(--animate-fade-up)">
-            <div className="mb-5 flex flex-wrap items-center gap-2">
-              <Badge tone="brand">
-                <span className="relative flex size-1.5">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-500 opacity-75" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-brand-600" />
-                </span>
-                Delivering across Indore
-              </Badge>
-              <MadeInIndia />
-            </div>
+            <Badge tone="brand">
+              <span className="relative flex size-1.5">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-500 opacity-75" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-brand-600" />
+              </span>
+              Delivering across Indore
+            </Badge>
 
-            <h1 className="text-4xl font-bold leading-[1.08] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl">
+            <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl">
               Clean water,
               <br />
-              delivered{" "}
-              <span className="relative whitespace-nowrap text-brand-600">
-                anytime
-                <svg
-                  aria-hidden
-                  viewBox="0 0 200 12"
-                  className="absolute -bottom-1 left-0 w-full text-brand-300"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M2 8c40-6 90-6 130-3s50 4 66 1"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              .
+              delivered <span className="text-brand-600">anytime</span>.
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-600 sm:text-lg">
-              Bottles, 20 litre cans, party campers and bulk tankers, booked in a few taps from
-              verified local suppliers, with live tracking from confirmation to your door.
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-ink-600">
+              Cans, bottles, campers and bulk tankers from verified local suppliers,
+              booked in a few taps and tracked to your door.
             </p>
 
-            {/* Live weather driven demand hint, from the Open-Meteo API */}
-            {weather?.available && (
-              <div
-                className={cx(
-                  "mt-6 flex items-start gap-3 rounded-xl p-3.5 ring-1",
-                  weather.demand_level === "normal"
-                    ? "bg-white ring-ink-200"
-                    : "bg-accent-400/10 ring-accent-500/25",
-                )}
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-lg shadow-sm">
-                  {weather.demand_level === "normal" ? "🌤️" : "🌡️"}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-ink-900">
-                    {weather.temperature_c !== null && `${Math.round(weather.temperature_c)}°C in Indore`}
-                    {weather.condition && ` · ${weather.condition}`}
-                  </p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-ink-600">{weather.advice}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3">
               <Link href="#order">
                 <Button size="lg" className="px-7">
                   Order water now
@@ -326,318 +137,256 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
-
-            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-ink-200/70 pt-6">
-              {[
-                { value: "24×7", label: "Always open" },
-                { value: "4-in-1", label: "Can, bottle, camper, tanker" },
-                { value: "100%", label: "Verified suppliers" },
-              ].map((item) => (
-                <div key={item.value}>
-                  <dt className="text-2xl font-bold text-brand-700">{item.value}</dt>
-                  <dd className="mt-0.5 text-xs leading-snug text-ink-500">{item.label}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          <HeroCard featured={featured} />
+          <DeliveryLoop />
         </div>
       </section>
 
-      <SectionNav sections={SECTIONS} />
+      {/* ================= ABOUT ================= */}
+      <section id="about" className="scroll-mt-20 bg-white py-14">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
+            About JAL 24×7
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            One place to buy water, at any hour
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-ink-600">
+            JAL 24×7 puts every verified water supplier in your city on a single screen.
+            A student ordering one jar and a housing society running a monthly tanker
+            contract use the same platform, at published rates, with live tracking from
+            the moment you pay.
+          </p>
 
-      {/* ================= SERVICE TILES ================= */}
+          <dl className="mx-auto mt-8 grid max-w-xl grid-cols-3 gap-4 border-t border-ink-100 pt-6">
+            {[
+              { value: "24×7", label: "Always open" },
+              { value: "20L–12,000L", label: "One jar to a tanker" },
+              { value: "100%", label: "KYC verified" },
+            ].map((item) => (
+              <div key={item.label}>
+                <dt className="text-xl font-bold text-brand-700 sm:text-2xl">{item.value}</dt>
+                <dd className="mt-0.5 text-xs leading-snug text-ink-500">{item.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* ================= PROBLEM -> SOLUTION ================= */}
+      <section className="bg-ink-900 py-14 text-white">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-xl text-center">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Buying water still works like it did twenty years ago
+            </h2>
+            <p className="mt-2.5 text-sm text-ink-300">
+              Three things make it painful. Each one has a direct answer here.
+            </p>
+          </div>
+
+          <ul className="mt-10 space-y-3">
+            {PAIRS.map((pair) => (
+              <li
+                key={pair.problem}
+                className="grid items-center gap-3 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10 sm:grid-cols-[auto_1fr_auto_1fr] sm:gap-5 sm:p-5"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-500/20 text-accent-400">
+                  <pair.icon className="size-5" />
+                </span>
+                <p className="text-sm leading-relaxed text-ink-300">{pair.problem}</p>
+                <span aria-hidden className="hidden text-lg text-brand-400 sm:block">
+                  →
+                </span>
+                <p className="flex items-start gap-2 text-sm font-medium leading-relaxed text-white">
+                  <Check className="mt-0.5 size-4 shrink-0 text-success-500" strokeWidth={3} />
+                  {pair.solution}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ================= MODULES ================= */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="What we deliver"
-          title="Four services, one platform"
-          subtitle="From a single jar for a hostel room to a twelve thousand litre tanker for a housing society."
-        />
+        <div className="mb-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">Modules</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            Four ways to get water
+          </h2>
+        </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICES.map((service) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {MODULES.map((module) => (
             <Link
-              key={service.href}
-              href={service.href}
+              key={module.href}
+              href={module.href}
               className="card group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-(--shadow-lift)"
             >
-              <div className="relative h-40 overflow-hidden bg-brand-50">
+              <div className="relative h-36 overflow-hidden bg-brand-50">
                 <Image
-                  src={service.image}
-                  alt={service.title}
+                  src={module.image}
+                  alt={module.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <span className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-ink-900/60 to-transparent" />
                 <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-2 py-1 text-xs font-bold text-brand-700 backdrop-blur">
-                  <service.icon className="size-3.5" />
-                  {service.price}
+                  <module.icon className="size-3.5" />
+                  {module.price}
                 </span>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-ink-900">{service.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-ink-500">{service.blurb}</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-brand-600 transition-transform group-hover:translate-x-0.5">
-                  Browse →
-                </span>
+                <h3 className="font-semibold text-ink-900">{module.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-ink-500">{module.blurb}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ================= PROBLEM ================= */}
-      <section id="problem" className="scroll-mt-32 bg-ink-900 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-400">
-              The problem
-            </span>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Getting water should not be this hard
-            </h2>
-            <p className="mt-3 text-ink-200">
-              In most Indian towns, buying drinking water still works the way it did twenty years
-              ago. Here is what that actually looks like.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PROBLEMS.map((problem, index) => (
-              <div
-                key={problem.title}
-                className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10 transition-colors hover:bg-white/10"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid size-11 place-items-center rounded-xl bg-accent-500/20 text-accent-400">
-                    <problem.icon className="size-5" />
-                  </span>
-                  <span className="text-3xl font-black text-white/10">0{index + 1}</span>
-                </div>
-                <h3 className="mt-4 font-semibold">{problem.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-ink-300">{problem.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SOLUTION ================= */}
-      <section id="solution" className="scroll-mt-32 bg-white py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-success-600">
-              Our solution
-            </span>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
-              So we rebuilt it, properly
-            </h2>
-            <p className="mt-3 text-ink-600">
-              Every problem above has a direct answer on this platform. Nothing hand-waved.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SOLUTIONS.map((solution, index) => (
-              <div key={solution.title} className="card relative p-5">
-                <span className="absolute -top-3 left-5 grid size-7 place-items-center rounded-full bg-success-500 text-xs font-bold text-white ring-4 ring-white">
-                  {index + 1}
-                </span>
-                <span className="mt-2 grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
-                  <solution.icon className="size-5" />
-                </span>
-                <h3 className="mt-4 font-semibold text-ink-900">{solution.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-ink-500">{solution.body}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* How it works strip */}
-          <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Jar, title: "Select", blurb: "Pick cans, bottles, a camper or a tanker trip." },
-              { icon: Check, title: "Confirm", blurb: "Verify by OTP, drop your pin, choose how to pay." },
-              { icon: MapPin, title: "Track", blurb: "Follow your driver on the map, live." },
-              { icon: WaterDrop, title: "Delivered", blurb: "Water at your door, every single time." },
-            ].map((step, index) => (
-              <li key={step.title} className="relative text-center">
-                <div className="relative z-10 mx-auto grid size-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-md">
-                  <step.icon className="size-6" />
-                </div>
-                <p className="mt-3 text-xs font-bold uppercase tracking-wider text-brand-500">
-                  Step {index + 1}
-                </p>
-                <h3 className="mt-1 font-semibold text-ink-900">{step.title}</h3>
-                <p className="mx-auto mt-1.5 max-w-52 text-sm leading-relaxed text-ink-500">
-                  {step.blurb}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       {/* ================= QUICK ORDER ================= */}
       <QuickOrder />
-
-      {/* ================= WHY US ================= */}
-      <section id="why" className="scroll-mt-32 bg-white py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Why JAL 24×7"
-            title="What makes this different"
-            subtitle="Six things a phone call to a local vendor simply cannot give you."
-            centred
-          />
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {WHY_US.map((item) => (
-              <div
-                key={item.title}
-                className="card group relative overflow-hidden p-6 transition-all hover:-translate-y-1 hover:shadow-(--shadow-lift)"
-              >
-                <span
-                  aria-hidden
-                  className="absolute -right-6 -top-6 size-24 rounded-full bg-brand-50 transition-transform group-hover:scale-125"
-                />
-                <span className="relative grid size-12 place-items-center rounded-2xl bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-sm">
-                  <item.icon className="size-6" />
-                </span>
-                <h3 className="relative mt-4 font-semibold text-ink-900">{item.title}</h3>
-                <p className="relative mt-2 text-sm leading-relaxed text-ink-500">{item.body}</p>
-                <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-lg bg-success-50 px-2.5 py-1 text-xs font-bold text-success-600">
-                  <Check className="size-3.5" strokeWidth={3} />
-                  {item.stat}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= FAQ ================= */}
-      <section id="faq" className="scroll-mt-32 py-16">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="FAQ"
-            title="Questions people actually ask"
-            subtitle="Everything about timing, pricing, cans, tankers and payments, answered plainly."
-            centred
-          />
-          <FaqAccordion items={FAQS} />
-
-          <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 p-5">
-            <div>
-              <h3 className="font-semibold text-ink-900">Still have a question?</h3>
-              <p className="mt-1 text-sm text-ink-500">
-                Our team replies within 24 hours on working days.
-              </p>
-            </div>
-            <Link href="/contact">
-              <Button variant="secondary">Contact us</Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= BIG WORDMARK ================= */}
-      <BigWordmark />
     </>
   );
 }
 
 /* -------------------------------------------------------------------------- */
 
-function SectionHeading({
-  eyebrow,
-  title,
-  subtitle,
-  centred = false,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-  centred?: boolean;
-}) {
+/**
+ * The hero's animated order card.
+ *
+ * Steps itself through booked -> on the way -> delivered on a loop, so the
+ * landing page shows what the product actually does instead of a static
+ * screenshot. Purely decorative: it is hidden from assistive tech, which gets
+ * the headline and the buttons instead.
+ */
+function DeliveryLoop() {
+  const STEPS = [
+    { label: "Booked", detail: "20L can × 2 · Vijay Nagar · ₹60", icon: Check },
+    { label: "Driver assigned", detail: "Ramesh Yadav · MP09 KA 4412", icon: Truck },
+    { label: "On the way", detail: "1.2 km away · arriving in 4 min", icon: MapPin },
+    { label: "Delivered", detail: "Handed over at your door", icon: WaterDrop },
+  ];
+
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setStep((s) => (s + 1) % STEPS.length), 1900);
+    return () => window.clearInterval(timer);
+    // STEPS is a stable literal; the loop only depends on its length.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const delivered = step === STEPS.length - 1;
+
   return (
-    <div className={cx("mb-8", centred && "mx-auto max-w-2xl text-center")}>
-      <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{eyebrow}</p>
-      <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">{title}</h2>
-      {subtitle && <p className="mt-2 text-sm leading-relaxed text-ink-500 sm:text-base">{subtitle}</p>}
-    </div>
-  );
-}
-
-/** The floating order card beside the hero copy. */
-function HeroCard({ featured }: { featured: Product[] }) {
-  return (
-    <div className="relative animate-(--animate-fade-up) [animation-delay:120ms]">
-      <div className="card relative overflow-hidden p-5 shadow-(--shadow-lift)">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-ink-900">Popular right now</p>
-          <Badge tone="success">In stock</Badge>
+    <div aria-hidden className="animate-(--animate-fade-up) [animation-delay:120ms]">
+      <div className="card overflow-hidden shadow-(--shadow-lift)">
+        <div className="flex items-center justify-between px-5 pt-5">
+          <p className="text-sm font-semibold text-ink-900">Your order</p>
+          <Badge tone={delivered ? "success" : "brand"}>
+            {delivered ? "Delivered" : "Live"}
+          </Badge>
         </div>
 
-        <div className="mt-4 space-y-2.5">
-          {featured.length === 0
-            ? [0, 1, 2].map((i) => <div key={i} className="skeleton h-16 rounded-xl" />)
-            : featured.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/products?category=${product.category}`}
-                  className="flex items-center gap-3 rounded-xl bg-brand-50/70 p-2.5 transition-colors hover:bg-brand-100/70"
-                >
-                  <span className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm">
-                    <Image
-                      src={product.image_url || "/images/products/can-20l.jpg"}
-                      alt={product.name}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink-900">
-                      {product.name}
-                    </span>
-                    <span className="text-xs text-ink-500">
-                      {product.capacity_l}L
-                      {product.pack_size > 1 ? ` × ${product.pack_size}` : ""} ·{" "}
-                      {product.eta_minutes} min
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-sm font-bold text-brand-700">
-                    {money(product.price)}
-                  </span>
-                </Link>
-              ))}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-dashed border-brand-200 bg-white p-3">
-          <div className="flex items-center gap-2 text-xs text-ink-500">
-            <MapPin className="size-4 shrink-0 text-brand-500" />
-            Drop your pin and we match the nearest verified supplier automatically.
-          </div>
-        </div>
-
-        <Link href="/products" className="mt-4 block">
-          <Button fullWidth size="lg">
-            Start an order
-          </Button>
-        </Link>
-      </div>
-
-      <div className="absolute -bottom-4 -left-4 hidden rounded-2xl border border-ink-100 bg-white px-4 py-3 shadow-(--shadow-lift) sm:block">
-        <div className="flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-success-50 text-success-600">
-            <Clock className="size-5" />
+        {/* The vehicle, running along a moving road. */}
+        <div className="relative mx-5 mt-4 h-24 overflow-hidden rounded-xl bg-brand-50">
+          <span
+            className={cx(
+              "absolute left-1/2 top-5 -translate-x-1/2 text-brand-600",
+              !delivered && "animate-(--animate-float)",
+            )}
+          >
+            {delivered ? <Jar className="size-12" /> : <Truck className="size-12" />}
           </span>
-          <div>
-            <p className="text-xs text-ink-400">Typical can delivery</p>
-            <p className="text-sm font-bold text-ink-900">Under 40 minutes</p>
+
+          {/* Water climbing inside the can once it lands. */}
+          {delivered && (
+            <span className="absolute inset-x-0 bottom-8 mx-auto h-6 w-9 overflow-hidden rounded-b-md">
+              <span className="block size-full bg-brand-400/50 animate-(--animate-fill)" />
+            </span>
+          )}
+
+          <span
+            className={cx(
+              "absolute inset-x-0 bottom-5 h-0.5",
+              !delivered && "animate-(--animate-road)",
+            )}
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(90deg,#91d7ff 0 10px,transparent 10px 18px)",
+            }}
+          />
+        </div>
+
+        {/* Step list, current one highlighted. */}
+        <ol className="mt-4 space-y-1.5 px-5">
+          {STEPS.map((item, index) => {
+            const done = index < step;
+            const current = index === step;
+            return (
+              <li
+                key={item.label}
+                className={cx(
+                  "flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors duration-500",
+                  current ? "bg-brand-50" : "opacity-55",
+                )}
+              >
+                <span
+                  className={cx(
+                    "grid size-7 shrink-0 place-items-center rounded-full transition-colors duration-500",
+                    current
+                      ? "bg-brand-600 text-white"
+                      : done
+                        ? "bg-success-500 text-white"
+                        : "bg-ink-100 text-ink-400",
+                  )}
+                >
+                  {done ? (
+                    <Check className="size-3.5" strokeWidth={3} />
+                  ) : (
+                    <item.icon className="size-3.5" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span
+                    className={cx(
+                      "block text-xs font-semibold",
+                      current ? "text-brand-700" : "text-ink-700",
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                  {current && (
+                    <span className="block truncate text-[11px] text-ink-500">{item.detail}</span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+
+        {/*
+          The delivery promise, as a footer row inside the card.
+          It used to float over the bottom-left corner, where it covered the
+          last step of the very list it was sitting on.
+        */}
+        <div className="mt-4 flex items-center gap-3 border-t border-ink-100 bg-ink-50/60 px-5 py-3.5">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-success-50 text-success-600">
+            <Clock className="size-4.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-ink-400">Typical can delivery</p>
+            <p className="text-sm font-bold text-ink-900">Under 11 minutes</p>
           </div>
+          <span className="shrink-0 text-right">
+            <span className="block text-[11px] text-ink-400">20L can</span>
+            <span className="block text-sm font-bold text-brand-700">₹30</span>
+          </span>
         </div>
       </div>
     </div>
@@ -687,8 +436,8 @@ function QuickOrder() {
         setArea(null);
         toastError(info.detail ?? "We could not verify that PIN code.");
       }
-    } catch {
-      toastError("PIN code lookup is unavailable right now.");
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : "PIN code lookup is unavailable right now.");
     } finally {
       setChecking(false);
     }
@@ -701,14 +450,16 @@ function QuickOrder() {
   };
 
   return (
-    <section id="order" className="scroll-mt-32 py-16">
+    <section id="order" className="scroll-mt-20 bg-white py-14">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="Quick order"
-          title="Book water in three fields"
-          subtitle="Pick what you need, how many, and where. Nothing else to fill in."
-          centred
-        />
+        <div className="mb-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
+            Quick order
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            Book water in three fields
+          </h2>
+        </div>
 
         <div className="card overflow-hidden">
           <div className="grid gap-0 lg:grid-cols-[1.3fr_1fr]">
@@ -841,7 +592,6 @@ function QuickOrder() {
                   <div className="absolute inset-0 bg-linear-to-t from-ink-900/85 via-ink-900/25 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-5 text-white">
                     <p className="text-sm font-semibold">{selected.name}</p>
-                    <p className="mt-0.5 text-xs text-white/80">{selected.description}</p>
                     <div className="mt-3 flex items-end justify-between">
                       <div>
                         <p className="text-xs text-white/70">Total for {quantity}</p>
@@ -863,8 +613,8 @@ function QuickOrder() {
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {[
             { href: "/tankers", icon: Truck, label: "Book a tanker", detail: "Bulk, per trip" },
-            { href: "/events", icon: Calendar, label: "Plan an event", detail: "Party and function desk" },
-            { href: "/subscriptions", icon: Repeat, label: "Set up a subscription", detail: "Daily or weekly" },
+            { href: "/suppliers", icon: Building, label: "Find suppliers", detail: "Compare rates near you" },
+            { href: "/subscriptions", icon: Repeat, label: "Subscribe", detail: "Monthly and recurring" },
           ].map((item) => (
             <Link
               key={item.href}
@@ -881,6 +631,11 @@ function QuickOrder() {
             </Link>
           ))}
         </div>
+
+        <p className="mt-5 flex items-center justify-center gap-1.5 text-xs text-ink-400">
+          <Shield className="size-3.5 text-success-500" />
+          Every supplier clears a KYC check before they are listed.
+        </p>
       </div>
     </section>
   );

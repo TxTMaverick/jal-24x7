@@ -1,6 +1,6 @@
 /** Inline SVG icons. no icon library, so nothing to load at runtime. */
 
-type IconProps = React.SVGProps<SVGSVGElement>;
+export type IconProps = React.SVGProps<SVGSVGElement>;
 
 const base = {
   fill: "none",
@@ -142,6 +142,16 @@ export function Phone(props: IconProps) {
   return (
     <svg {...base} aria-hidden {...props}>
       <path d="M5 3.5h3.2l1.6 4-2 1.4a11.5 11.5 0 0 0 5.3 5.3l1.4-2 4 1.6V17a2.5 2.5 0 0 1-2.7 2.5A15.5 15.5 0 0 1 2.5 6.2 2.5 2.5 0 0 1 5 3.5Z" />
+    </svg>
+  );
+}
+
+export function Home(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5" />
+      <path d="M9.5 21v-6h5v6" />
     </svg>
   );
 }

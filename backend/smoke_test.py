@@ -25,6 +25,7 @@ os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+from app.config import settings  # noqa: E402
 from app.main import app  # noqa: E402
 
 PASS, FAIL = 0, 0
@@ -112,7 +113,13 @@ with TestClient(app) as client:
     can = next(p for p in products if p["sku"] == "CAN-20L-1")
     r = client.post("/api/quote", json={"lines": [{"product_id": can["id"], "quantity": 2}]})
     small = r.json()
-    check("small order pays delivery fee", small["delivery_fee"] == 40.0, str(small["delivery_fee"]))
+    # Read the expected fee from settings rather than hard-coding it, so
+    # repricing the catalogue does not break this test.
+    check(
+        "small order pays delivery fee",
+        small["delivery_fee"] == settings.base_delivery_fee,
+        str(small["delivery_fee"]),
+    )
     check("gst applied", small["tax"] > 0)
 
     r = client.post("/api/quote", json={"lines": [{"product_id": can["id"], "quantity": 20}]})
