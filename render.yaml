@@ -1,16 +1,18 @@
-# Render blueprint for JAL 24x7.
+# Render blueprint for the JAL 24x7 API.
 #
-# Deploys both services on Render's free plan and wires them to each other:
-#   * the frontend is told the API hostname at build time
-#   * the backend is told the frontend hostname for its CORS allow-list
+# Only the backend lives here. The Next.js frontend is deployed on Vercel,
+# which is free, has no cold start, and is purpose-built for Next.
 #
-# No region is pinned, so Render uses the account default. Pinning a region
-# that an account cannot use makes the whole blueprint fail to apply.
+# Why the split matters: Render's free plan allows 750 instance hours per
+# month per workspace, and a calendar month is about 730 hours. Two services
+# would need ~1460 and blow the budget in a fortnight. One service fits, with
+# room to spare, which is what makes it possible to keep it awake around the
+# clock (see .github/workflows/keep-alive.yml) instead of paying a 60 second
+# cold start on every visit.
 #
 # To deploy: push to GitHub, then on render.com choose New + > Blueprint.
 
 services:
-  # ---------------------------------------------------------------- backend
   - type: web
     name: jal24x7-api
     runtime: python
@@ -34,43 +36,20 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-      # SQLite on the instance disk. The catalogue, suppliers, drivers and
-      # helplines reseed on every boot, so the site is never empty. Orders do
-      # not survive a restart; attach a Render Postgres and point this at its
-      # Internal Database URL (prefix postgresql+psycopg://) to change that.
+      # Defaults to SQLite on the instance disk, which is wiped on every
+      # redeploy: the catalogue reseeds, but placed orders do not survive.
+      #
+      # For persistence use a free Neon Postgres (neon.tech) and paste its
+      # connection string here verbatim; config.py rewrites the prefix to
+      # postgresql+psycopg:// to match the driver in requirements.txt. Neon
+      # resumes from idle in well under a second and, unlike Supabase, never
+      # pauses the project outright. Left blank, this falls back to SQLite.
       - key: DATABASE_URL
-        value: "sqlite:///./jal24x7.db"
+        sync: false
 
-      # Locked to the deployed frontend. Never "*" with credentials enabled.
+      # The deployed frontend origin, for the CORS allow-list. Set this to the
+      # Vercel URL, e.g. https://jal-24x7.vercel.app. Never "*" with
+      # credentials enabled. Render prompts for it because the frontend is no
+      # longer a service in this blueprint for it to reference.
       - key: CORS_ORIGINS
-        fromService:
-          type: web
-          name: jal24x7-web
-          property: host
-
-  # --------------------------------------------------------------- frontend
-  - type: web
-    name: jal24x7-web
-    runtime: node
-    plan: free
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    startCommand: npm run start -- --port $PORT --hostname 0.0.0.0
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
-
-      # A Next.js build is memory hungry and the free instance has 512 MB.
-      # Capping the old-space keeps V8 garbage collecting instead of being
-      # killed by the OOM reaper part way through the build.
-      - key: NODE_OPTIONS
-        value: "--max-old-space-size=460"
-
-      # NEXT_PUBLIC_* is inlined at build time, so this must exist during the
-      # build, not just at runtime. Render resolves it to the API's hostname
-      # and the API client prefixes https:// itself.
-      - key: NEXT_PUBLIC_API_BASE
-        fromService:
-          type: web
-          name: jal24x7-api
-          property: host
+        sync: false

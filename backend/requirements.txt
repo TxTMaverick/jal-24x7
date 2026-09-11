@@ -15,3 +15,10 @@ email-validator>=2.1
 # Used by routers/integrations.py to call Open-Meteo, Nominatim and the
 # India Post PIN code service from the server rather than the browser.
 httpx>=0.27
+
+# Postgres driver, for DATABASE_URL=postgresql+psycopg://...
+# SQLite needs no driver, so this is dead weight locally, but without it a
+# Postgres URL fails at import time rather than with a useful message, and
+# every managed Postgres (Neon, Supabase, Render) needs it. The [binary]
+# extra ships a prebuilt wheel, so there is still no C toolchain required.
+psycopg[binary]>=3.1

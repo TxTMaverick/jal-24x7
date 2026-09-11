@@ -187,44 +187,79 @@ hardening and external API integrations. Runs against a throwaway database.
 
 ## Deploying
 
-Both platforms have a free tier and neither needs a card.
+Everything below is free and stays free. Nothing here needs a credit card.
+
+| Piece | Host | Why |
+|---|---|---|
+| Frontend | **Vercel** | Purpose-built for Next.js, no cold start, generous free tier |
+| Backend | **Render** | Free Python web service with WebSocket support |
+| Database | **Neon** | Free Postgres that resumes from idle in under a second |
+| Keep-alive | **GitHub Actions** | Free and unlimited on public repos |
+
+### Why the frontend is not on Render
+
+Render's free plan allows **750 instance hours per month per workspace**, and a calendar month is
+about 730 hours. Two services would need roughly 1460 and exhaust the allowance in a fortnight.
+Moving the frontend to Vercel leaves one service at ~730 hours, which fits, and that is what makes
+it possible to keep the API awake around the clock instead of paying a cold start on every visit.
 
 **1. Push to GitHub**
 
 ```bash
-git init
-git add .
-git commit -m "JAL 24x7 platform"
-git branch -M main
-git remote add origin https://github.com/<you>/jal-24x7.git
-git push -u origin main
+git push origin main
 ```
 
-**2. Backend on Render**
+**2. Database on Neon**
 
-1. render.com → New + → Blueprint → pick the repo (it reads `backend/render.yaml`).
-2. Wait for the build, then copy the URL, for example `https://jal24x7-api.onrender.com`.
-3. Check `<url>/health` returns `{"status":"healthy"}`.
+1. [neon.tech](https://neon.tech) → sign in with GitHub → create a project.
+2. Copy the connection string and paste it in as-is at the next step.
 
-**3. Frontend on Vercel**
+No prefix rewriting needed: `app/config.py` rewrites `postgresql://` (and the legacy
+`postgres://`) to `postgresql+psycopg://` itself, so it lines up with the driver in
+`requirements.txt`.
 
-1. vercel.com → Add New → Project → import the repo.
+Skipping this step is allowed: a blank `DATABASE_URL` falls back to SQLite on the instance disk.
+The catalogue reseeds on every boot so the site is never empty, but placed orders do not survive
+a redeploy.
+
+**3. Backend on Render**
+
+1. [render.com](https://render.com) → New + → Blueprint → pick the repo (it reads `render.yaml`).
+2. When prompted, paste the Neon string into `DATABASE_URL`. Leave `CORS_ORIGINS` for now.
+3. Wait for the build, then check `<url>/health` returns `{"status":"healthy"}`.
+
+**4. Frontend on Vercel**
+
+1. [vercel.com](https://vercel.com) → Add New → Project → import the repo.
 2. Set **Root Directory** to `frontend`.
 3. Add environment variable `NEXT_PUBLIC_API_BASE` = your Render URL.
+   This is inlined at build time, so it must exist before the build runs, not just at runtime.
 4. Deploy, then copy the URL, for example `https://jal-24x7.vercel.app`.
 
-**4. Connect them**
+**5. Connect them**
 
 Back in Render, set `CORS_ORIGINS` to your Vercel URL and redeploy. Without this the browser
 blocks every API call.
 
-> Render's free tier sleeps after 15 minutes idle, and the first request then takes 30 to 50
-> seconds. Open the site a few minutes before a demo so it is warm.
->
-> Free Render instances also have an ephemeral disk, so the SQLite file resets on redeploy. That
-> is fine for a demo. For persistence, add a free Render Postgres and set `DATABASE_URL`.
+**6. Turn on the keep-alive**
 
----
+`.github/workflows/keep-alive.yml` pings `/health` every 10 minutes so the instance never goes
+idle long enough to spin down.
+
+1. GitHub repo → Settings → Secrets and variables → Actions → **Variables** tab.
+2. New repository variable: `API_URL` = your Render URL.
+3. Actions tab → "Keep API awake" → **Run workflow** to confirm it passes.
+
+Two things to know: GitHub disables scheduled workflows on repos with no activity for 60 days
+(it emails first, and any push re-enables them), and scheduled runs are queued rather than
+guaranteed on the minute. The 10 minute interval leaves margin against the 15 minute spin-down.
+If you would rather not rely on Actions, [cron-job.org](https://cron-job.org) is free and does
+the same job more punctually.
+
+> **On keeping a free instance warm.** This is within the 750 hour allowance rather than a way
+> around it, which is why the frontend had to move off Render first. If you later add a second
+> Render service, turn the keep-alive off or you will exhaust the month early and the API will be
+> suspended until it rolls over.
 
 ## Notes for the report
 

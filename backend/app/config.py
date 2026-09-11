@@ -7,6 +7,7 @@ Copy `.env.example` to `.env` and edit if you want to override anything.
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,6 +51,35 @@ class Settings(BaseSettings):
     base_delivery_fee: float = 15.0
     express_delivery_fee: float = 30.0
     service_radius_km: float = 25.0
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _fall_back_to_sqlite(cls, v: object) -> object:
+        """Treat an empty DATABASE_URL as "not set".
+
+        Render's blueprint prompts for this and writes an empty string when
+        it is skipped, which would otherwise override the SQLite default and
+        fail at startup with an unreadable SQLAlchemy error.
+        """
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return "sqlite:///./jal24x7.db"
+        return v
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalise_postgres_scheme(cls, v: str) -> str:
+        """Point bare postgres URLs at the driver that is actually installed.
+
+        Hosted Postgres providers hand out `postgresql://...` (and Heroku-era
+        tooling still emits `postgres://`). SQLAlchemy would then reach for
+        psycopg2, which is not a dependency, and fail at import. requirements
+        ships psycopg 3, so say so explicitly rather than making everyone
+        remember to rewrite the prefix by hand.
+        """
+        for prefix in ("postgresql://", "postgres://"):
+            if v.startswith(prefix):
+                return f"postgresql+psycopg://{v[len(prefix):]}"
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:
