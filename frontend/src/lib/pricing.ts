@@ -10,14 +10,17 @@
  * Keep in step with `backend/app/config.py` and `backend/app/services/pricing.py`.
  */
 
-/** Orders at or above this subtotal ship free. */
-export const FREE_DELIVERY_THRESHOLD = 150;
+/**
+ * Standard delivery is free because it is already inside the listed price:
+ * a 20L jar is about Rs 20 from a local supplier and lists here at Rs 30.
+ */
+export const FREE_DELIVERY_THRESHOLD = 0;
 
-/** Flat delivery fee below the threshold. */
-export const BASE_DELIVERY_FEE = 15;
+/** Standard delivery costs nothing extra at checkout. */
+export const BASE_DELIVERY_FEE = 0;
 
-/** Express dispatch fee, charged instead of the base fee. */
-export const EXPRESS_DELIVERY_FEE = 30;
+/** Express dispatch genuinely costs more to serve, so it is charged. */
+export const EXPRESS_DELIVERY_FEE = 20;
 
 /** A tanker trip covers this radius before a per-km surcharge applies. */
 export const TANKER_FREE_RADIUS_KM = 8;

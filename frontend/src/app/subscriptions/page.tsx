@@ -18,6 +18,7 @@ import {
 import { api } from "@/lib/api";
 import { cx, litres, money, relativeTime } from "@/lib/format";
 import type { Product, Subscription, SubscriptionEstimate, TankerTier } from "@/lib/types";
+import { useClientDate } from "@/lib/useClientDate";
 import { useAuth } from "@/store/auth";
 import { useToast } from "@/store/toast";
 
@@ -79,12 +80,6 @@ const SEGMENTS: {
 
 const WINDOWS = ["06:00-08:00", "07:00-09:00", "09:00-11:00", "17:00-19:00", "19:00-21:00"];
 
-function tomorrowISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 export default function SubscriptionsPage() {
   const { user } = useAuth();
   const { success, error: toastError } = useToast();
@@ -105,7 +100,13 @@ export default function SubscriptionsPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [preferredWindow, setPreferredWindow] = useState(WINDOWS[1]);
-  const [startDate, setStartDate] = useState(tomorrowISO);
+  // Computed after mount, never while rendering: see useClientDate.
+  const tomorrow = useClientDate(1);
+  const [startDate, setStartDate] = useState("");
+
+  useEffect(() => {
+    if (tomorrow) setStartDate((current) => current || tomorrow);
+  }, [tomorrow]);
   const [societyName, setSocietyName] = useState("");
   const [units, setUnits] = useState(60);
 

@@ -13,14 +13,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  Building,
   Calendar,
   Check,
-  Clock,
-  MapPin,
   Phone,
   Star,
-  Truck,
 } from "@/components/icons";
 import {
   Badge,
@@ -29,12 +25,12 @@ import {
   Field,
   PageHeader,
   QuantityStepper,
-  VerifiedBadge,
   inputClass,
 } from "@/components/ui";
 import { api } from "@/lib/api";
-import { cx, eta, litres, money } from "@/lib/format";
+import { cx, litres, money } from "@/lib/format";
 import { saveSchedule, scheduleLabel } from "@/lib/schedule";
+import { useClientDate } from "@/lib/useClientDate";
 import type { DriverWithOperator, TankerTier } from "@/lib/types";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/store/toast";
@@ -49,12 +45,6 @@ const TIME_WINDOWS = [
   "15:00 to 18:00",
   "18:00 to 21:00",
 ];
-
-function isoDate(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export interface TankerModuleCopy {
   eyebrow: string;
@@ -88,7 +78,16 @@ export function TankerBooking({
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [trips, setTrips] = useState(1);
-  const [date, setDate] = useState(() => isoDate(1));
+  // Computed after mount, never while rendering: see useClientDate.
+  const tomorrow = useClientDate(1);
+  const today = useClientDate(0);
+  const [date, setDate] = useState("");
+
+  // Default to tomorrow once the browser has told us what tomorrow is,
+  // without clobbering a date the customer has already picked.
+  useEffect(() => {
+    if (tomorrow) setDate((current) => current || tomorrow);
+  }, [tomorrow]);
   const [timeWindow, setTimeWindow] = useState(TIME_WINDOWS[1]);
 
   // Society-only inputs
@@ -233,10 +232,7 @@ export function TankerBooking({
                             <span className="text-base font-bold text-brand-700">
                               {money(tier.base_price)}
                             </span>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-ink-500">
-                              <Clock className="size-3" />
-                              {eta(tier.eta_minutes)}
-                            </span>
+
                           </span>
                         </span>
                       </button>
@@ -291,7 +287,7 @@ export function TankerBooking({
                   <input
                     type="date"
                     value={date}
-                    min={isoDate(0)}
+                    min={today}
                     onChange={(e) => setDate(e.target.value)}
                     className={cx(inputClass, "pl-9")}
                   />

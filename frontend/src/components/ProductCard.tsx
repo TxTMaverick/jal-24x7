@@ -7,7 +7,7 @@ import { discountPercent, money, speedLabel } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/store/toast";
-import { Check, Clock } from "./icons";
+import { Check } from "./icons";
 import { Badge, Button, QuantityStepper } from "./ui";
 
 const FALLBACK_IMAGE = "/images/products/can-20l.jpg";
@@ -46,11 +46,6 @@ export function ProductCard({ product }: { product: Product }) {
           {lowStock && <Badge tone="danger">Only {product.stock} left</Badge>}
           {outOfStock && <Badge tone="neutral">Out of stock</Badge>}
         </div>
-
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[11px] font-semibold text-ink-700 shadow-sm backdrop-blur">
-          <Clock className="size-3" />
-          {product.eta_minutes} min
-        </span>
 
         <span
           aria-hidden

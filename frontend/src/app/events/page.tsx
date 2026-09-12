@@ -14,14 +14,11 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Calendar, Camper, Check, MapPin, Phone, Star, Truck, Building } from "@/components/icons";
 import {
-  Badge,
   Button,
   EmptyState,
   ErrorState,
-  Field,
   PageHeader,
   VerifiedBadge,
-  inputClass,
 } from "@/components/ui";
 import { api } from "@/lib/api";
 import { cx, litres, money } from "@/lib/format";

@@ -10,7 +10,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { Check, Clock, MapPin, Phone, Shield, Star, Truck } from "@/components/icons";
+import { Clock, MapPin, Phone, Shield, Star, Truck } from "@/components/icons";
 import {
   Badge,
   Button,

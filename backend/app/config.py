@@ -45,11 +45,16 @@ class Settings(BaseSettings):
 
     # --- Business rules -----------------------------------------------------
     gst_rate: float = 0.18
-    # Scaled to the catalogue: a 20L jar lists at Rs 30, so a Rs 40 delivery
-    # fee would have cost more than the water. Five jars now ship free.
-    free_delivery_threshold: float = 150.0
-    base_delivery_fee: float = 15.0
-    express_delivery_fee: float = 30.0
+
+    # Delivery is priced into the catalogue rather than added at checkout: a
+    # 20L jar is about Rs 20 from a local supplier and lists here at Rs 30,
+    # and that Rs 10 is what pays the delivery partner and the platform. A
+    # separate fee on top would charge for the same trip twice, so standard
+    # delivery is free and only express, which genuinely costs more to serve,
+    # carries a charge.
+    free_delivery_threshold: float = 0.0
+    base_delivery_fee: float = 0.0
+    express_delivery_fee: float = 20.0
     service_radius_km: float = 25.0
 
     @field_validator("database_url", mode="before")

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import DynamicMap, { type MapMarker } from "@/components/DynamicMap";
-import { Building, Check, Clock, MapPin, Phone, Shield, Truck } from "@/components/icons";
+import { Building, Check, MapPin, Phone, Shield, Truck } from "@/components/icons";
 
 import {
   Button,
@@ -19,7 +19,7 @@ import {
   inputClass,
 } from "@/components/ui";
 import { api } from "@/lib/api";
-import { cx, eta, litres, money } from "@/lib/format";
+import { cx, litres, money } from "@/lib/format";
 import type { VendorMatch, WaterDepartment } from "@/lib/types";
 import { useToast } from "@/store/toast";
 
@@ -402,10 +402,7 @@ function SupplierCard({
               <MapPin className="size-3.5" />
               {match.distance_km} km
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Clock className="size-3.5" />
-              {eta(match.eta_minutes)}
-            </span>
+
           </div>
         </div>
 

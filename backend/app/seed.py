@@ -43,69 +43,74 @@ IMG = "/images/products"
 PRODUCTS = [
     # sku, name, category, capacity_l, pack, price, mrp, emoji, image, speed, eta, stock, description
     #
-    # Pricing is benchmarked against what these actually cost in an Indian
-    # city, then a small margin is added on top to pay the delivery partner
-    # and the supplier. The 20L jar is the reference point: the going local
-    # rate is about Rs 25, and we list it at Rs 30.
-    ("BTL-500-24", "Packaged Drinking Water 500ml (Pack of 24)", "bottle", 0.5, 24, 170, 240,
+    # Listed prices are what the customer pays at the door: the supplier's rate
+    # for the water plus the cost of bringing it. Benchmarked against what a
+    # local supplier charges in an Indian city, so a 15L jar is about Rs 15 and
+    # a 20L jar about Rs 20 at the shop; delivery adds Rs 5 and Rs 10, which is
+    # what pays the delivery partner and leaves the platform a margin.
+    #
+    # eta_minutes is retained because live tracking uses it to estimate arrival
+    # once a driver is moving. It is deliberately not advertised as a delivery
+    # promise anywhere in the catalogue.
+    ("BTL-500-24", "Packaged Drinking Water 500ml (Pack of 24)", "bottle", 0.5, 24, 180, 240,
      "💧", f"{IMG}/bottle-500ml.jpg", "instant", 20, 180,
      "Sealed 500ml bottles, ideal for events, offices and travel. BIS certified."),
-    ("BTL-1L-12", "Packaged Drinking Water 1L (Pack of 12)", "bottle", 1.0, 12, 150, 240,
+    ("BTL-1L-12", "Packaged Drinking Water 1L (Pack of 12)", "bottle", 1.0, 12, 160, 240,
      "🚰", f"{IMG}/bottle-1l.jpg", "instant", 20, 150,
      "Everyday 1 litre bottles in a carry-friendly pack of 12."),
-    ("BTL-2L-9", "Packaged Drinking Water 2L (Pack of 9)", "bottle", 2.0, 9, 190, 270,
+    ("BTL-2L-9", "Packaged Drinking Water 2L (Pack of 9)", "bottle", 2.0, 9, 200, 270,
      "🧴", f"{IMG}/bottle-2l.jpg", "instant", 25, 120,
      "Family-size 2 litre bottles. Best value per litre in the bottle range."),
-    ("BTL-CASE-48", "Bulk Bottle Case 500ml (Pack of 48)", "bottle", 0.5, 48, 320, 480,
+    ("BTL-CASE-48", "Bulk Bottle Case 500ml (Pack of 48)", "bottle", 0.5, 48, 330, 480,
      "📦", f"{IMG}/bottle-pack.jpg", "same_day", 45, 80,
      "Double case for functions, site offices and long meetings."),
 
+    ("CAN-15L-1", "15L Mineral Water Can (Single)", "can", 15.0, 1, 20, 30,
+     "🥛", f"{IMG}/can-20l-alt.jpg", "instant", 30, 300,
+     "Compact jar for a small family or a single room. Rs 15 at the shop, Rs 20 delivered. Empty can exchanged."),
     ("CAN-20L-1", "20L Mineral Water Can (Single)", "can", 20.0, 1, 30, 40,
-     "🪣", f"{IMG}/can-20l.jpg", "instant", 11, 300,
-     "The daily-use 20 litre jar. RO purified and UV treated. Empty can exchanged on delivery."),
-    ("CAN-20L-3", "20L Mineral Water Can (Pack of 3)", "can", 20.0, 3, 85, 120,
-     "📦", f"{IMG}/can-20l-alt.jpg", "instant", 15, 200,
-     "Three 20L jars at a bundle rate. Most popular with families."),
-    ("CAN-20L-10", "20L Mineral Water Can (Pack of 10)", "can", 20.0, 10, 270, 400,
-     "🏭", f"{IMG}/can-bulk.jpg", "same_day", 40, 90,
-     "Bulk pack of ten 20L jars for offices, hostels and PGs."),
-    ("CAN-PUMP-1", "20L Can with Manual Pump", "can", 20.0, 1, 100, 140,
-     "⛽", f"{IMG}/can-pump.jpg", "instant", 15, 110,
-     "A 20L jar bundled with a reusable hand pump. No dispenser needed."),
+     "🪣", f"{IMG}/can-20l.jpg", "instant", 30, 300,
+     "The daily-use 20 litre jar, RO purified and UV treated. Rs 20 at the shop, Rs 30 delivered. Empty can exchanged."),
+    ("CAN-20L-3", "20L Mineral Water Can (Pack of 3)", "can", 20.0, 3, 80, 120,
+     "📦", f"{IMG}/can-bulk.jpg", "instant", 40, 200,
+     "Three 20L jars in one trip, so the delivery cost is shared. Most popular with families."),
+    ("CAN-20L-10", "20L Mineral Water Can (Pack of 10)", "can", 20.0, 10, 250, 400,
+     "🏭", f"{IMG}/can-pump.jpg", "same_day", 60, 90,
+     "Bulk pack of ten 20L jars for offices, hostels and PGs. Best rate per jar."),
 
-    ("CMP-50L", "50L Water Camper with Tap", "camper", 50.0, 1, 180, 240,
-     "🍶", f"{IMG}/camper-50l.jpg", "instant", 30, 60,
+    ("CMP-50L", "50L Water Camper with Tap", "camper", 50.0, 1, 150, 220,
+     "🍶", f"{IMG}/camper-50l.jpg", "instant", 45, 60,
      "Insulated 50 litre camper with a dispensing tap. Great for small gatherings."),
-    ("CMP-100L", "100L Party Camper (Chilled)", "camper", 100.0, 1, 350, 450,
-     "🎉", f"{IMG}/camper-party.jpg", "same_day", 60, 40,
+    ("CMP-100L", "100L Party Camper (Chilled)", "camper", 100.0, 1, 280, 400,
+     "🎉", f"{IMG}/camper-party.jpg", "same_day", 90, 40,
      "Chilled 100 litre camper for parties and functions. Stand included."),
-    ("CMP-200L", "200L Event Camper (Chilled + Stand)", "camper", 200.0, 1, 650, 850,
-     "🎪", f"{IMG}/camper-pour.jpg", "scheduled", 120, 25,
+    ("CMP-200L", "200L Event Camper (Chilled + Stand)", "camper", 200.0, 1, 520, 750,
+     "🎪", f"{IMG}/camper-pour.jpg", "scheduled", 150, 25,
      "Large 200 litre chilled camper for weddings and large events."),
-    ("CMP-OFC-50", "Office Dispenser Camper 50L (Hot & Cold)", "camper", 50.0, 1, 250, 340,
-     "🏢", f"{IMG}/camper-office.jpg", "same_day", 60, 35,
+    ("CMP-OFC-50", "Office Dispenser Camper 50L (Hot & Cold)", "camper", 50.0, 1, 220, 320,
+     "🏢", f"{IMG}/camper-office.jpg", "same_day", 90, 35,
      "Hot-and-cold dispenser camper on a monthly-friendly rate. Popular with offices."),
 ]
 
 
 TANKER_TIERS = [
-    # Per-trip rates. A tanker's cost is the round trip and the driver's time,
-    # not the water, so these track what private operators actually charge in
-    # an Indian city, plus the platform's cut.
-    ("TNK-IND-1000", 1000, "individual", 350, 90, f"{IMG}/tanker-truck.jpg",
+    # Per-trip, delivery included. A tanker's cost is the round trip and the
+    # driver's time rather than the water, so these track what a private
+    # operator charges locally, with the platform's margin on top. Larger
+    # loads cost less per litre, which is how the trade actually prices.
+    ("TNK-IND-1000", 1000, "individual", 300, 90, f"{IMG}/tanker-truck.jpg",
      "Compact tanker for a single home, a small top-up or garden use."),
-    ("TNK-IND-2000", 2000, "individual", 550, 120, f"{IMG}/tanker-rural.jpg",
+    ("TNK-IND-2000", 2000, "individual", 500, 120, f"{IMG}/tanker-rural.jpg",
      "Standard household tanker. Covers a typical family for 3 to 4 days."),
-    ("TNK-IND-5000", 5000, "individual", 1000, 150, f"{IMG}/tanker-yellow.jpg",
+    ("TNK-IND-5000", 5000, "individual", 950, 150, f"{IMG}/tanker-yellow.jpg",
      "Large household or small-function tanker."),
-    ("TNK-SOC-5000", 5000, "society", 920, 150, f"{IMG}/tanker-yellow.jpg",
+    ("TNK-SOC-5000", 5000, "society", 875, 150, f"{IMG}/tanker-yellow.jpg",
      "Society rate for a 5000L trip. Best for small apartment blocks."),
-    ("TNK-SOC-8000", 8000, "society", 1400, 180, f"{IMG}/tanker-street.jpg",
+    ("TNK-SOC-8000", 8000, "society", 1320, 180, f"{IMG}/tanker-street.jpg",
      "Bulk 8000L trip for societies, schools and institutions."),
-    ("TNK-SOC-12000", 12000, "society", 2000, 210, f"{IMG}/tanker-truck.jpg",
+    ("TNK-SOC-12000", 12000, "society", 1850, 210, f"{IMG}/tanker-truck.jpg",
      "Largest tanker on the platform. For large RWAs and construction sites."),
 ]
-
 
 VENDORS = [
     # name, phone, lat_off, lng_off, rating, count, completed, verified, kyc,

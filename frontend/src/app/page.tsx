@@ -42,7 +42,7 @@ const MODULES = [
     icon: Jar,
     title: "Cans & Bottles",
     blurb: "20L jars, sealed bottle packs and office supply.",
-    price: "From ₹30",
+    price: "From ₹20",
   },
   {
     href: "/products?category=camper",
@@ -50,7 +50,7 @@ const MODULES = [
     icon: Camper,
     title: "Party Campers",
     blurb: "Chilled 50L to 200L campers with taps and stands.",
-    price: "From ₹180",
+    price: "From ₹150",
   },
   {
     href: "/tankers",
@@ -58,7 +58,7 @@ const MODULES = [
     icon: Truck,
     title: "Water Tankers",
     blurb: "1,000L to 12,000L trips for homes and societies.",
-    price: "From ₹350",
+    price: "From ₹300",
   },
   {
     href: "/subscriptions",
@@ -268,7 +268,7 @@ function DeliveryLoop() {
   const STEPS = [
     { label: "Booked", detail: "20L can × 2 · Vijay Nagar · ₹60", icon: Check },
     { label: "Driver assigned", detail: "Ramesh Yadav · MP09 KA 4412", icon: Truck },
-    { label: "On the way", detail: "1.2 km away · arriving in 4 min", icon: MapPin },
+    { label: "On the way", detail: "1.2 km away · driver en route", icon: MapPin },
     { label: "Delivered", detail: "Handed over at your door", icon: WaterDrop },
   ];
 
@@ -380,11 +380,11 @@ function DeliveryLoop() {
             <Clock className="size-4.5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-ink-400">Typical can delivery</p>
-            <p className="text-sm font-bold text-ink-900">Under 11 minutes</p>
+            <p className="text-[11px] text-ink-400">Delivered to your door</p>
+            <p className="text-sm font-bold text-ink-900">20L can, delivery included</p>
           </div>
           <span className="shrink-0 text-right">
-            <span className="block text-[11px] text-ink-400">20L can</span>
+            <span className="block text-[11px] text-ink-400">From</span>
             <span className="block text-sm font-bold text-brand-700">₹30</span>
           </span>
         </div>
@@ -597,10 +597,7 @@ function QuickOrder() {
                         <p className="text-xs text-white/70">Total for {quantity}</p>
                         <p className="text-2xl font-bold">{money(selected.price * quantity)}</p>
                       </div>
-                      <span className="rounded-lg bg-white/15 px-2 py-1 text-xs font-semibold backdrop-blur">
-                        <Clock className="mr-1 inline size-3" />
-                        {selected.eta_minutes} min
-                      </span>
+
                     </div>
                   </div>
                 </>

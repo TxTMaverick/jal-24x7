@@ -13,7 +13,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Building, Check, Clock, Star, Truck } from "@/components/icons";
+import { Building, Check, Star, Truck } from "@/components/icons";
 import { TankerBooking, type TankerModuleCopy } from "@/components/TankerBooking";
 import { Badge, Button, ErrorState, PageHeader, VerifiedBadge } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -207,7 +207,7 @@ export default function TankersPage() {
                 key: "individual" as const,
                 icon: Truck,
                 title: "Home & Individual",
-                detail: "1,000 L – 5,000 L · from ₹350 a trip",
+                detail: "1,000 L – 5,000 L · from ₹300 a trip",
               },
               {
                 key: "society" as const,
@@ -274,7 +274,6 @@ export default function TankersPage() {
                 <th className="px-4 py-3 font-semibold">Capacity</th>
                 <th className="px-4 py-3 font-semibold">Segment</th>
                 <th className="px-4 py-3 font-semibold">Best for</th>
-                <th className="px-4 py-3 font-semibold">Typical ETA</th>
                 <th className="px-4 py-3 text-right font-semibold">Per trip</th>
               </tr>
             </thead>
@@ -282,7 +281,7 @@ export default function TankersPage() {
               {loading
                 ? [0, 1, 2].map((i) => (
                     <tr key={i}>
-                      <td colSpan={5} className="px-4 py-3">
+                      <td colSpan={4} className="px-4 py-3">
                         <div className="skeleton h-5 w-full rounded" />
                       </td>
                     </tr>
@@ -296,12 +295,6 @@ export default function TankersPage() {
                         </Badge>
                       </td>
                       <td className="max-w-sm px-4 py-3 text-ink-600">{tier.description}</td>
-                      <td className="px-4 py-3 text-ink-500">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="size-3.5" />
-                          {Math.round(tier.eta_minutes / 60)} hr
-                        </span>
-                      </td>
                       <td className="px-4 py-3 text-right font-bold text-brand-700">
                         {money(tier.base_price)}
                       </td>

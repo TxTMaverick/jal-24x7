@@ -324,7 +324,7 @@ export default function CheckoutPage() {
                     <Badge tone="warn">+{money(EXPRESS_DELIVERY_FEE)}</Badge>
                   </span>
                   <span className="mt-0.5 block text-xs text-ink-500">
-                    Priority dispatch, roughly 40% faster than the standard ETA.
+                    Priority dispatch. Your order is put at the front of the queue.
                   </span>
                 </span>
               </label>
