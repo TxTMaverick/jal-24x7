@@ -35,8 +35,9 @@ import type {
 /**
  * Base URL of the FastAPI backend.
  *
- * Render's blueprint passes a bare hostname (jal24x7-api.onrender.com) when one
- * service references another, so a missing scheme is filled in as https.
+ * Defaults to the local backend. A hostname given without a scheme is assumed
+ * to be https, since some hosting platforms hand one service another service's
+ * bare hostname.
  */
 function resolveApiBase(): string {
   const raw = process.env.NEXT_PUBLIC_API_BASE?.trim();

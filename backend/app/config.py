@@ -85,9 +85,9 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> list[str]:
         """Allowed browser origins.
 
-        Render's blueprint passes a bare hostname when one service references
-        another (jal24x7-web.onrender.com), but CORS needs a full origin, so a
-        missing scheme is filled in as https. Localhost stays on http.
+        CORS needs a full origin, but a hostname is sometimes configured
+        without one, so a missing scheme is filled in as https. Localhost
+        stays on http.
         """
         origins: list[str] = []
         for raw in self.cors_origins.split(","):

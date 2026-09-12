@@ -10,8 +10,8 @@ Covers the realistic threats for a public booking site of this size:
   4. Request ID            every response is traceable in the server log.
 
 What is deliberately NOT here, and why:
-  * TLS termination is the hosting platform's job (Render and Vercel both
-    force HTTPS), so we set HSTS but do not try to redirect ourselves.
+  * TLS termination belongs to whatever sits in front of the app, so we set
+    HSTS but do not try to redirect to HTTPS ourselves.
   * SQL injection is already prevented by SQLAlchemy's parameter binding.
   * Cross-site scripting is prevented by React escaping all interpolated text
     plus the sanitisation in `validators.py`. We never use dangerouslySetInnerHTML.

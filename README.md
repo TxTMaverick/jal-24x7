@@ -71,7 +71,7 @@ Any other valid 10 digit Indian mobile number creates a new customer account.
 
 | Layer | Choice | Why this one |
 | --- | --- | --- |
-| Frontend | Next.js 16, React 19, TypeScript | App Router, file-based routing, first-class TypeScript. Deploys free on Vercel. |
+| Frontend | Next.js 16, React 19, TypeScript | App Router, file-based routing, first-class TypeScript. |
 | Styling | Tailwind CSS v4 | Design tokens defined in CSS, no config file, no component library to fight. |
 | Backend | Python, FastAPI | Satisfies the Python requirement from the synopsis. Async, and generates Swagger docs automatically. |
 | ORM | SQLAlchemy 2.0 | Same models work on SQLite and Postgres. Parameter binding prevents SQL injection. |
@@ -185,81 +185,43 @@ hardening and external API integrations. Runs against a throwaway database.
 
 ---
 
-## Deploying
+## Deployment
 
-Everything below is free and stays free. Nothing here needs a credit card.
+The project runs entirely on one machine. There is no cloud account, no hosting
+bill, no API key and no external database to provision: the backend serves the API
+over Uvicorn, the frontend runs on the Next.js server, and SQLite lives in a single
+file that is created and seeded on first boot.
 
-| Piece | Host | Why |
-|---|---|---|
-| Frontend | **Vercel** | Purpose-built for Next.js, no cold start, generous free tier |
-| Backend | **Render** | Free Python web service with WebSocket support |
-| Database | **Neon** | Free Postgres that resumes from idle in under a second |
-| Keep-alive | **GitHub Actions** | Free and unlimited on public repos |
+| Component | Runs on | Address |
+| --- | --- | --- |
+| Frontend | Next.js server | http://localhost:3000 |
+| Backend | Uvicorn (ASGI) | http://localhost:8000 |
+| Database | SQLite | `backend/jal24x7.db` |
 
-### Why the frontend is not on Render
+Start both as described in [Run it locally](#run-it-locally).
 
-Render's free plan allows **750 instance hours per month per workspace**, and a calendar month is
-about 730 hours. Two services would need roughly 1460 and exhaust the allowance in a fortnight.
-Moving the frontend to Vercel leaves one service at ~730 hours, which fits, and that is what makes
-it possible to keep the API awake around the clock instead of paying a cold start on every visit.
+### Moving it to another machine
 
-**1. Push to GitHub**
+Clone the repository, or copy the folder excluding `node_modules/`, `frontend/.next/`
+and `backend/.venv/`, then follow the same two commands. Nothing is tied to the
+machine it was built on, and no configuration is needed: the database rebuilds and
+reseeds itself the first time the backend starts.
 
-```bash
-git push origin main
-```
+### Cloud readiness
 
-**2. Database on Neon**
+Nothing in the code assumes it is running locally, so a cloud deployment needs
+configuration rather than changes:
 
-1. [neon.tech](https://neon.tech) → sign in with GitHub → create a project.
-2. Copy the connection string and paste it in as-is at the next step.
+* `DATABASE_URL` switches SQLite for Postgres. The driver ships in
+  `requirements.txt` and `config.py` normalises the URL, so no model or query is
+  affected.
+* `CORS_ORIGINS` lists the deployed frontend origin.
+* `NEXT_PUBLIC_API_BASE` points the frontend at the deployed API.
 
-No prefix rewriting needed: `app/config.py` rewrites `postgresql://` (and the legacy
-`postgres://`) to `postgresql+psycopg://` itself, so it lines up with the driver in
-`requirements.txt`.
-
-Skipping this step is allowed: a blank `DATABASE_URL` falls back to SQLite on the instance disk.
-The catalogue reseeds on every boot so the site is never empty, but placed orders do not survive
-a redeploy.
-
-**3. Backend on Render**
-
-1. [render.com](https://render.com) → New + → Blueprint → pick the repo (it reads `render.yaml`).
-2. When prompted, paste the Neon string into `DATABASE_URL`. Leave `CORS_ORIGINS` for now.
-3. Wait for the build, then check `<url>/health` returns `{"status":"healthy"}`.
-
-**4. Frontend on Vercel**
-
-1. [vercel.com](https://vercel.com) → Add New → Project → import the repo.
-2. Set **Root Directory** to `frontend`.
-3. Add environment variable `NEXT_PUBLIC_API_BASE` = your Render URL.
-   This is inlined at build time, so it must exist before the build runs, not just at runtime.
-4. Deploy, then copy the URL, for example `https://jal-24x7.vercel.app`.
-
-**5. Connect them**
-
-Back in Render, set `CORS_ORIGINS` to your Vercel URL and redeploy. Without this the browser
-blocks every API call.
-
-**6. Turn on the keep-alive**
-
-`.github/workflows/keep-alive.yml` pings `/health` every 10 minutes so the instance never goes
-idle long enough to spin down.
-
-1. GitHub repo → Settings → Secrets and variables → Actions → **Variables** tab.
-2. New repository variable: `API_URL` = your Render URL.
-3. Actions tab → "Keep API awake" → **Run workflow** to confirm it passes.
-
-Two things to know: GitHub disables scheduled workflows on repos with no activity for 60 days
-(it emails first, and any push re-enables them), and scheduled runs are queued rather than
-guaranteed on the minute. The 10 minute interval leaves margin against the 15 minute spin-down.
-If you would rather not rely on Actions, [cron-job.org](https://cron-job.org) is free and does
-the same job more punctually.
-
-> **On keeping a free instance warm.** This is within the 750 hour allowance rather than a way
-> around it, which is why the frontend had to move off Render first. If you later add a second
-> Render service, turn the keep-alive off or you will exhaust the month early and the API will be
-> suspended until it rolls over.
+This was validated on a free hosting tier during development. It is recorded here as
+future scope rather than a live deployment, because free tiers idle their instances
+down after a few minutes and take up to a minute to answer the next request, which
+is a poor way to present the work. Running locally is immediate and reliable.
 
 ## Notes for the report
 

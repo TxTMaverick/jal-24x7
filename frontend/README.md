@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JAL 24×7 — Frontend
 
-## Getting Started
+Next.js 16 App Router client for the JAL 24×7 water delivery platform. Talks to the
+FastAPI backend in [`../backend`](../backend); it holds no database and no business
+logic of its own.
 
-First, run the development server:
+See the [project README](../README.md) for the full setup.
+
+## Running it
+
+The backend must be running first, otherwise every screen shows an error state.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Opens on http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+One variable, in `.env.local`:
 
-## Learn More
+```
+NEXT_PUBLIC_API_BASE=http://localhost:8000
+```
 
-To learn more about Next.js, take a look at the following resources:
+`NEXT_PUBLIC_*` values are inlined at build time, not read at runtime, so changing
+this needs a restart in development and a rebuild in production.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/           routes (App Router; each folder is a URL)
+  components/    shared UI: Header, Splash, MapView, TankerBooking, ui primitives
+  lib/           api client, formatting, pricing display constants, types
+  store/         React context: auth, cart, toasts
+public/images/   product photography
+```
 
-## Deploy on Vercel
+## Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* **Styling** is Tailwind v4, configured through `@theme` in `src/app/globals.css`
+  rather than a `tailwind.config` file. Design tokens live there.
+* **Fonts**: Inter, loaded via `next/font`.
+* **Maps** are Leaflet with OpenStreetMap tiles, which need no API key and no
+  billing account. `MapView` is loaded with `ssr: false` because Leaflet touches
+  `window` at import time.
+* **Images** are served unoptimised (`next.config.ts`). The photographs are already
+  sized for the layouts that use them, and skipping the optimiser keeps memory use
+  low on a constrained machine.
+* **Live tracking** uses a WebSocket to `/api/orders/{code}/ws`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server with hot reload |
+| `npm run build` | Production build |
+| `npm run start` | Serve a production build |
+| `npm run lint` | ESLint |
