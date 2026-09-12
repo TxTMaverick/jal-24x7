@@ -103,12 +103,19 @@ export function Header() {
 
       <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-          {/* Wordmark: replays the splash instead of navigating (per the brief). */}
-          <button
-            type="button"
-            onClick={() => setSplash(true)}
+          {/* Wordmark: home from anywhere, which is what people expect of a
+              logo. Already on home, there is nowhere to go, so it replays the
+              intro animation instead of doing nothing. */}
+          <Link
+            href="/"
+            onClick={(event) => {
+              if (pathname === "/") {
+                event.preventDefault();
+                setSplash(true);
+              }
+            }}
             className="group flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1 transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-            aria-label="JAL 24x7, play splash animation"
+            aria-label={pathname === "/" ? "JAL 24x7, replay the intro animation" : "JAL 24x7, go to the home page"}
           >
             <span className="relative grid size-9 place-items-center rounded-xl bg-brand-600 text-white shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
               <WaterDrop filled className="size-5" />
@@ -116,7 +123,7 @@ export function Header() {
             <span className="text-lg font-bold tracking-tight text-ink-900">
               JAL <span className="text-brand-600">24×7</span>
             </span>
-          </button>
+          </Link>
 
           <div className="ml-auto flex items-center gap-1.5">
             <Link
