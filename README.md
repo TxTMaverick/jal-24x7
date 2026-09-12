@@ -7,21 +7,47 @@ MCA (ODL) Semester IV minor project · Devi Ahilya Vishwavidyalaya, Indore
 
 ---
 
+## How it fits together
+
+Two programs that talk over HTTP. Both must be running.
+
+```
+   Browser  ──►  Frontend (Next.js)  ──►  Backend (FastAPI)  ──►  SQLite
+   :3000         pages, UI, maps          API, rules, auth         one file
+```
+
+* **Backend** (`backend/`) owns everything that matters: pricing, supplier matching,
+  orders, authentication and the live-tracking WebSocket. It is the only thing that
+  touches the database.
+* **Frontend** (`frontend/`) renders the screens and calls the backend. It stores no
+  data and decides no prices, so what you see on screen always came from the API.
+
+Start the backend first. Without it the frontend loads but every screen shows an
+error state, because there is nothing to fetch.
+
+---
+
 ## Run it locally
 
-Two terminals, from this folder.
+You need **Python 3.11+** and **Node.js 20+**. Nothing else — no database to install,
+no accounts, no API keys.
 
-**Terminal 1, backend**
+### 1. Backend
 
 ```bash
 cd backend
 python -m venv .venv
-.venv/Scripts/python -m pip install -r requirements.txt   # Windows
-# source .venv/bin/activate && pip install -r requirements.txt   # macOS / Linux
+.venv/Scripts/python -m pip install -r requirements.txt      # Windows
+# python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt   # macOS / Linux
 .venv/Scripts/python -m uvicorn app.main:app --reload --port 8000
 ```
 
-**Terminal 2, frontend**
+Wait for `JAL 24x7 API ready`. On the first run it also creates `jal24x7.db` and
+seeds the catalogue, suppliers, drivers and helplines, so the app is never empty.
+
+### 2. Frontend
+
+In a second terminal:
 
 ```bash
 cd frontend
@@ -29,16 +55,27 @@ npm install
 npm run dev
 ```
 
+### 3. Open it
+
 | What | URL |
 | --- | --- |
 | Website | http://localhost:3000 |
-| API docs (Swagger) | http://localhost:8000/docs |
+| API docs (Swagger, try any endpoint) | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
 
-The database is created and seeded automatically on first boot. No setup steps, no accounts,
-no API keys.
+`npm install` is only needed the first time. After that it is two commands.
 
-> **Windows note.** `pkill` does not work here. If port 8000 or 3000 is stuck:
+### Troubleshooting
+
+| Symptom | Cause and fix |
+| --- | --- |
+| Every screen shows an error | The backend is not running. Check http://localhost:8000/health |
+| `ModuleNotFoundError` on start | Dependencies went to the wrong interpreter. Use `.venv/Scripts/python -m ...`, not a bare `python` |
+| Port already in use | See the Windows note below |
+| Want a clean database | Stop the backend, delete `backend/jal24x7.db`, start it again. It reseeds |
+| OTP not arriving | It is not sent by SMS. In demo mode the code appears on screen and in the server log |
+
+> **Windows note.** `pkill` does not exist here. To free a stuck port:
 > ```powershell
 > Get-NetTCPConnection -LocalPort 8000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 > ```
@@ -187,10 +224,9 @@ hardening and external API integrations. Runs against a throwaway database.
 
 ## Deployment
 
-The project runs entirely on one machine. There is no cloud account, no hosting
-bill, no API key and no external database to provision: the backend serves the API
-over Uvicorn, the frontend runs on the Next.js server, and SQLite lives in a single
-file that is created and seeded on first boot.
+The project runs on one machine. No cloud account, no hosting bill, no API key and
+no external database: the backend serves the API over Uvicorn, the frontend runs on
+the Next.js server, and SQLite is a single file created and seeded on first boot.
 
 | Component | Runs on | Address |
 | --- | --- | --- |
@@ -198,30 +234,56 @@ file that is created and seeded on first boot.
 | Backend | Uvicorn (ASGI) | http://localhost:8000 |
 | Database | SQLite | `backend/jal24x7.db` |
 
-Start both as described in [Run it locally](#run-it-locally).
+This is how the project is presented. Everything below is optional.
 
 ### Moving it to another machine
 
-Clone the repository, or copy the folder excluding `node_modules/`, `frontend/.next/`
-and `backend/.venv/`, then follow the same two commands. Nothing is tied to the
-machine it was built on, and no configuration is needed: the database rebuilds and
-reseeds itself the first time the backend starts.
+Nothing is tied to the machine it was built on.
 
-### Cloud readiness
+1. Copy the folder or clone the repository. Exclude `node_modules/`,
+   `frontend/.next/` and `backend/.venv/` — they are rebuilt, and copying them
+   between machines causes more problems than it solves.
+2. Install Python 3.11+ and Node.js 20+.
+3. Run the two commands in [Run it locally](#run-it-locally).
 
-Nothing in the code assumes it is running locally, so a cloud deployment needs
-configuration rather than changes:
+The database rebuilds and reseeds itself, so there is nothing to export or import.
+To carry existing orders across, copy `backend/jal24x7.db` as well.
 
-* `DATABASE_URL` switches SQLite for Postgres. The driver ships in
-  `requirements.txt` and `config.py` normalises the URL, so no model or query is
-  affected.
-* `CORS_ORIGINS` lists the deployed frontend origin.
-* `NEXT_PUBLIC_API_BASE` points the frontend at the deployed API.
+### Configuration
 
-This was validated on a free hosting tier during development. It is recorded here as
-future scope rather than a live deployment, because free tiers idle their instances
-down after a few minutes and take up to a minute to answer the next request, which
-is a poor way to present the work. Running locally is immediate and reliable.
+Three settings cover every environment. All have working defaults, so local needs none.
+
+| Setting | Where | Default | Change it when |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | `backend/.env` | SQLite file | Moving to Postgres |
+| `CORS_ORIGINS` | `backend/.env` | localhost:3000 | The frontend is on another domain |
+| `NEXT_PUBLIC_API_BASE` | `frontend/.env.local` | localhost:8000 | The backend is on another domain |
+
+`NEXT_PUBLIC_*` is inlined when the frontend is built, not read when it runs, so
+changing it needs a rebuild rather than a restart.
+
+### Hosting it (future scope)
+
+The code makes no assumption that it is running locally, so hosting is configuration
+rather than changes. The backend needs a platform that runs a long-lived process,
+because live tracking holds WebSocket connections and advances deliveries on a
+background task — serverless functions cannot do either.
+
+Outline, on a free tier:
+
+1. Create a Postgres database and copy its connection string. The driver is already
+   in `requirements.txt`, and `config.py` normalises the URL, so no code changes.
+2. Deploy `backend/` as a web service. Build `pip install -r requirements.txt`,
+   start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set `DATABASE_URL` and
+   `JWT_SECRET`.
+3. Deploy `frontend/` with root directory `frontend` and `NEXT_PUBLIC_API_BASE` set
+   to the backend URL **before** building.
+4. Set `CORS_ORIGINS` on the backend to the frontend URL, then redeploy it.
+
+Known caveats on free tiers: instances idle down after a few minutes and take up to
+a minute to answer the next request; a free Postgres may expire after a set period;
+and SQLite on a hosted instance is wiped on every redeploy, which is why step 1
+comes first. These are the reasons the project is presented locally.
 
 ## Notes for the report
 
