@@ -213,7 +213,7 @@ export default function SubscriptionsPage() {
 
   if (loadError) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-9">
         <ErrorState message={loadError} onRetry={() => window.location.reload()} />
       </div>
     );
@@ -300,7 +300,7 @@ export default function SubscriptionsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         {/* ---------------- Form ---------------- */}
-        <form onSubmit={handleSubmit} className="card space-y-6 p-5 sm:p-6">
+        <form onSubmit={handleSubmit} className="card space-y-5 p-5 sm:p-6">
           <section>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
               1. Choose what gets delivered

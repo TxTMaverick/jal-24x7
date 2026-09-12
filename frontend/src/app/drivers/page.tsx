@@ -167,7 +167,7 @@ export default function DriversPage() {
           }
         />
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-5">
           <p className="text-sm text-ink-500">
             <span className="font-semibold text-ink-900">{filtered.length}</span> driver
             {filtered.length === 1 ? "" : "s"} across{" "}
@@ -202,7 +202,7 @@ export default function DriversPage() {
         </div>
       )}
 
-      <div className="card mt-10 flex items-start gap-3 bg-brand-50/60 p-5">
+      <div className="card mt-6 flex items-start gap-3 bg-brand-50/60 p-5">
         <Shield className="mt-0.5 size-5 shrink-0 text-brand-600" />
         <p className="text-xs leading-relaxed text-ink-600">
           <span className="font-semibold text-ink-900">How drivers are vetted. </span>

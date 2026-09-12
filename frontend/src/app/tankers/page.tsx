@@ -38,7 +38,7 @@ const COPY: Record<Segment, TankerModuleCopy> = {
       "Driver and vehicle number shared before arrival",
     ],
     pricingNote:
-      "The trip rate covers delivery within 8 km. Beyond that a distance surcharge of ₹10 per km is added as its own line. GST at 18% applies.",
+      "The trip rate covers delivery within 8 km. Beyond that a distance surcharge of ₹10 per km is added as its own line. Drinking water is nil-rated for GST.",
   },
   society: {
     eyebrow: "For societies and bulk",
@@ -52,7 +52,7 @@ const COPY: Record<Segment, TankerModuleCopy> = {
       "Recurring monthly contracts available",
     ],
     pricingNote:
-      "Society contract pricing is 8% below the individual rate. Recurring schedules are set up from the Subscriptions module. GST at 18% applies.",
+      "Society contract pricing is 8% below the individual rate. Recurring schedules are set up from the Subscriptions module.",
   },
 };
 
@@ -117,7 +117,7 @@ export default function TankersPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-9">
         <ErrorState message={error} onRetry={() => void load()} />
       </div>
     );
@@ -132,7 +132,7 @@ export default function TankersPage() {
       />
 
       {/* ================= AVAILABILITY ================= */}
-      <section className="mb-10">
+      <section className="mb-8">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-ink-900">Availability right now</h2>
@@ -190,7 +190,7 @@ export default function TankersPage() {
       </section>
 
       {/* ================= BOOKING ================= */}
-      <section className="mb-10 scroll-mt-20" id="book">
+      <section className="mb-8 scroll-mt-20" id="book">
         <div className="mb-4">
           <h2 className="text-lg font-bold text-ink-900">Book a tanker</h2>
           <p className="mt-0.5 text-sm text-ink-500">
@@ -265,7 +265,7 @@ export default function TankersPage() {
       </section>
 
       {/* ================= RATE CARD ================= */}
-      <section className="mb-10">
+      <section className="mb-8">
         <h2 className="mb-3 text-lg font-bold text-ink-900">All capacities and rates</h2>
         <div className="card overflow-x-auto">
           <table className="w-full min-w-2xl text-left text-sm">

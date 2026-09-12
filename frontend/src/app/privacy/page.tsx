@@ -100,7 +100,7 @@ export default function PrivacyPage() {
         </p>
       </div>
 
-      <section className="mt-8">
+      <section className="mt-6">
         <h2 className="text-lg font-bold text-ink-900">What we collect, and why</h2>
         <div className="card mt-3 overflow-x-auto">
           <table className="w-full min-w-2xl text-left text-sm">
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      <section className="mt-8">
+      <section className="mt-6">
         <h2 className="text-lg font-bold text-ink-900">What we never collect</h2>
         <ul className="card mt-3 divide-y divide-ink-100">
           {NOT_COLLECTED.map((item) => (
@@ -141,7 +141,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <div className="mt-8 space-y-8">
+      <div className="mt-6 space-y-5">
         {SECTIONS.map((section) => (
           <section key={section.heading}>
             <h2 className="text-lg font-bold text-ink-900">{section.heading}</h2>
@@ -154,7 +154,7 @@ export default function PrivacyPage() {
         ))}
       </div>
 
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-ink-100 pt-6">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-ink-100 pt-6">
         <MadeInIndia />
         <Link href="/terms" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
           Read the Terms of Service →

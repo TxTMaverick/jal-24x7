@@ -12,7 +12,7 @@ export default function IndividualTankerPage() {
         subtitle:
           "A single tanker trip for your house, garden, construction top-up or a small function. Pick a capacity, choose a slot, and the nearest verified operator takes it.",
         pricingNote:
-          "The trip rate covers delivery within 8 km. Beyond that a distance surcharge of Rs 12 per km is added at checkout as its own line, plus 18 percent GST.",
+          "The trip rate covers delivery within 8 km. Beyond that a distance surcharge of Rs 10 per km is added at checkout as its own line.",
         checklist: [
           "Pay per trip, not per litre",
           "Driver name and vehicle number shared before arrival",

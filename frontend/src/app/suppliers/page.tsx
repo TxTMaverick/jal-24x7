@@ -290,7 +290,7 @@ export default function SuppliersPage() {
       {error ? (
         <ErrorState message={error} onRetry={() => void load()} />
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[1fr_1.05fr] lg:items-start">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1.05fr] lg:items-start">
           {/* Supplier list */}
           <section className="order-2 lg:order-1">
             {loading ? (

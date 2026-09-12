@@ -279,7 +279,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
+    <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
       {icon && (
         <div className="grid size-14 place-items-center rounded-2xl bg-brand-50 text-brand-500">
           {icon}

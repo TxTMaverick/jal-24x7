@@ -156,7 +156,7 @@ export function TankerBooking({
 
   if (error) {
     return (
-      <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-12"}>
+      <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-9"}>
         <ErrorState message={error} onRetry={() => void load()} />
       </div>
     );
@@ -180,7 +180,7 @@ export function TankerBooking({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* ---- Capacity ---- */}
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">

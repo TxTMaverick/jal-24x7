@@ -103,7 +103,7 @@ function LoginInner() {
   };
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:gap-14 lg:py-16">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:gap-10 lg:py-12">
       {/* Left: pitch */}
       <div className="hidden flex-1 lg:block">
         <span className="grid size-12 place-items-center rounded-2xl bg-brand-600 text-white">
@@ -119,7 +119,7 @@ function LoginInner() {
           and manage recurring plans.
         </p>
 
-        <ul className="mt-8 space-y-3">
+        <ul className="mt-6 space-y-3">
           {[
             { icon: Shield, text: "Password-free OTP login, nothing to remember" },
             { icon: Check, text: "Your saved addresses and order history in one place" },
@@ -321,7 +321,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-md px-4 py-16">
+        <div className="mx-auto max-w-md px-4 py-10">
           <div className="skeleton h-96 rounded-2xl" />
         </div>
       }

@@ -190,9 +190,9 @@ export default function CheckoutPage() {
 
   if (authLoading || !hydrated || !user) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-9 sm:px-6">
         <div className="skeleton h-8 w-48 rounded" />
-        <div className="mt-6 grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
           <div className="skeleton h-[32rem] rounded-2xl" />
           <div className="skeleton h-80 rounded-2xl" />
         </div>
@@ -208,7 +208,7 @@ export default function CheckoutPage() {
         subtitle="Drop your delivery pin, pick a slot, and we will match the nearest verified supplier automatically."
       />
 
-      <form onSubmit={placeOrder} className="grid gap-5 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+      <form onSubmit={placeOrder} className="grid gap-4 lg:grid-cols-[1.5fr_1fr] lg:items-start">
         <div className="space-y-5">
           {/* --- Delivery location --- */}
           <section className="card p-5">
@@ -430,7 +430,7 @@ export default function CheckoutPage() {
                 value={quote.delivery_fee === 0 ? "FREE" : money(quote.delivery_fee, true)}
                 tone={quote.delivery_fee === 0 ? "success" : undefined}
               />
-              <Row label="GST (18%)" value={money(quote.tax, true)} />
+              <Row label="GST (nil-rated)" value={money(quote.tax, true)} />
               <div className="flex items-end justify-between border-t border-ink-100 pt-3">
                 <dt className="font-semibold text-ink-900">Total payable</dt>
                 <dd className="text-2xl font-bold text-ink-900">{money(quote.total, true)}</dd>

@@ -30,7 +30,7 @@ export function ComingSoon({
   willDo: string[];
 }) {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-3xl px-4 py-9 sm:px-6 lg:px-8">
       <div className="card overflow-hidden">
         <div className="flex flex-col items-center gap-4 border-b border-ink-100 bg-brand-50/60 px-6 py-10 text-center">
           <span className="grid size-16 place-items-center rounded-2xl bg-brand-600 text-white shadow-sm">
@@ -55,7 +55,7 @@ export function ComingSoon({
             <p className="mt-2 text-sm leading-relaxed text-ink-600">{problem}</p>
           </section>
 
-          <section className="mt-7">
+          <section className="mt-6">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
               What this module will do
             </h2>
@@ -69,7 +69,7 @@ export function ComingSoon({
             </ul>
           </section>
 
-          <div className="mt-8 flex flex-wrap gap-3 border-t border-ink-100 pt-6">
+          <div className="mt-6 flex flex-wrap gap-3 border-t border-ink-100 pt-6">
             <Link href="/">
               <Button variant="secondary">Back to home</Button>
             </Link>

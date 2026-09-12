@@ -155,7 +155,7 @@ function ProductsInner() {
       {error ? (
         <ErrorState message={error} onRetry={() => void load()} />
       ) : loading ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
@@ -183,7 +183,7 @@ function ProductsInner() {
               </>
             )}
           </p>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -191,7 +191,7 @@ function ProductsInner() {
         </>
       )}
 
-      <div className="card mt-10 flex flex-wrap items-center justify-between gap-4 bg-linear-to-r from-brand-50 to-white p-6">
+      <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 bg-linear-to-r from-brand-50 to-white p-6">
         <div>
           <h3 className="font-semibold text-ink-900">Need more than a few cans?</h3>
           <p className="mt-1 text-sm text-ink-500">

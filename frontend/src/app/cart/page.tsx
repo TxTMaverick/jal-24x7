@@ -48,7 +48,7 @@ export default function CartPage() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="skeleton h-8 w-40 rounded" />
-        <div className="mt-6 grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
           <div className="skeleton h-64 rounded-2xl" />
           <div className="skeleton h-64 rounded-2xl" />
         </div>
@@ -58,7 +58,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <EmptyState
           icon={<CartIcon className="size-6" />}
           title="Your cart is empty"
@@ -107,7 +107,7 @@ export default function CartPage() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* Line items */}
         <ul className="space-y-3">
           {items.map((item) => (
@@ -185,7 +185,7 @@ export default function CartPage() {
                 value={quote.delivery_fee === 0 ? "FREE" : money(quote.delivery_fee, true)}
                 tone={quote.delivery_fee === 0 ? "success" : undefined}
               />
-              <Row label="GST (18%)" value={money(quote.tax, true)} />
+              <Row label="GST (nil-rated)" value={money(quote.tax, true)} />
 
               <div className="flex items-end justify-between border-t border-ink-100 pt-3">
                 <dt className="font-semibold text-ink-900">Total</dt>

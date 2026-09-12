@@ -12,7 +12,7 @@ export default function SocietyTankerPage() {
         subtitle:
           "Bulk trips for housing societies, schools, hostels and offices, priced on the contract rate rather than the individual spot rate. Book one trip or set up a recurring schedule.",
         pricingNote:
-          "Society bookings apply an 8 percent contract discount automatically. Distance surcharge beyond 8 km and 18 percent GST are added at checkout.",
+          "Society bookings apply an 8 percent contract discount automatically. A distance surcharge applies beyond 8 km.",
         checklist: [
           "8 percent below the individual spot rate",
           "Up to 12,000 litres in a single trip",

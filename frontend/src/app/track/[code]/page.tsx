@@ -122,7 +122,7 @@ export default function TrackPage({ params }: { params: Promise<{ code: string }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <ErrorState message={error} onRetry={() => void loadSnapshot()} />
         <div className="mt-4 text-center">
           <Link href="/orders">
@@ -135,9 +135,9 @@ export default function TrackPage({ params }: { params: Promise<{ code: string }
 
   if (!tracking) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 py-9 sm:px-6">
         <div className="skeleton h-8 w-56 rounded" />
-        <div className="mt-6 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <div className="skeleton h-96 rounded-2xl" />
           <div className="skeleton h-72 rounded-2xl" />
         </div>
@@ -217,7 +217,7 @@ export default function TrackPage({ params }: { params: Promise<{ code: string }
         </Link>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr] lg:items-start">
         {/* Map + ETA */}
         <div className="space-y-4">
           <div className="relative">

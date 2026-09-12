@@ -120,7 +120,19 @@ with TestClient(app) as client:
         small["delivery_fee"] == settings.base_delivery_fee,
         str(small["delivery_fee"]),
     )
-    check("gst applied", small["tax"] > 0)
+    # Drinking water is nil-rated, so the assertion is that the tax line agrees
+    # with the configured rate rather than that it is non-zero. Reading the rate
+    # from settings keeps this honest if the rate ever changes.
+    expected_small_tax = round(
+        (small["subtotal"] - small["discount"] + small["delivery_fee"]
+         + small["distance_surcharge"]) * settings.gst_rate,
+        2,
+    )
+    check(
+        "gst line matches the configured rate",
+        abs(small["tax"] - expected_small_tax) < 0.02,
+        f'{small["tax"]} vs {expected_small_tax}',
+    )
 
     r = client.post("/api/quote", json={"lines": [{"product_id": can["id"], "quantity": 20}]})
     bulk = r.json()
@@ -129,10 +141,15 @@ with TestClient(app) as client:
     check("400L computed", bulk["total_litres"] == 400.0, str(bulk["total_litres"]))
 
     expected = round(
-        (bulk["subtotal"] - bulk["discount"] + bulk["delivery_fee"] + bulk["distance_surcharge"]) * 1.18,
+        (bulk["subtotal"] - bulk["discount"] + bulk["delivery_fee"] + bulk["distance_surcharge"])
+        * (1 + settings.gst_rate),
         2,
     )
-    check("total = taxable * 1.18", abs(bulk["total"] - expected) < 0.02, f"{bulk['total']} vs {expected}")
+    check(
+        "total = taxable + gst",
+        abs(bulk["total"] - expected) < 0.02,
+        f"{bulk['total']} vs {expected}",
+    )
 
     tanker = next(t for t in society_tankers if t["capacity_l"] == 8000)
     r = client.post(

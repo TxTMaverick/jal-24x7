@@ -78,7 +78,7 @@ export default function OrdersPage() {
 
   if (authLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-4xl px-4 py-9 sm:px-6">
         <div className="skeleton h-8 w-48 rounded" />
         <div className="mt-6 space-y-3">
           {[0, 1, 2].map((i) => (
@@ -91,7 +91,7 @@ export default function OrdersPage() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <EmptyState
           icon={<CartIcon className="size-6" />}
           title="Sign in to see your orders"

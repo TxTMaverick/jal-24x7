@@ -38,8 +38,8 @@ const COLUMNS = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-ink-100 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <footer className="mt-12 border-t border-ink-100 bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-9 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar: copyright on the left, legal links on the right. */}
-        <div className="mt-10 flex flex-col-reverse gap-4 border-t border-ink-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col-reverse gap-4 border-t border-ink-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-ink-400">
             © {new Date().getFullYear()} JAL 24×7. All rights reserved.
           </p>

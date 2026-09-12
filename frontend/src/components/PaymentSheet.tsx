@@ -401,7 +401,7 @@ function ProcessingView({ label }: { label: string }) {
   }, [steps.length]);
 
   return (
-    <div className="flex flex-col items-center gap-5 px-6 py-14 text-center">
+    <div className="flex flex-col items-center gap-4 px-6 py-10 text-center">
       <Spinner className="size-10 text-brand-600" />
       <div>
         <p className="font-semibold text-ink-900">{steps[step]}</p>
@@ -435,7 +435,7 @@ function ProcessingView({ label }: { label: string }) {
 
 function SuccessView({ amount }: { amount: number }) {
   return (
-    <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+    <div className="flex flex-col items-center gap-4 px-6 py-10 text-center">
       <span className="grid size-16 place-items-center rounded-full bg-success-500 text-white animate-(--animate-drop)">
         <Check className="size-8" strokeWidth={3} />
       </span>

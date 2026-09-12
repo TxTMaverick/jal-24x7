@@ -28,5 +28,5 @@ export const TANKER_FREE_RADIUS_KM = 8;
 /** Per-kilometre tanker surcharge beyond the free radius. */
 export const TANKER_PER_KM_SURCHARGE = 10;
 
-/** GST applied to the order total. */
-export const GST_RATE = 0.18;
+/** Drinking water in bulk jars is nil-rated under Indian GST. */
+export const GST_RATE = 0;

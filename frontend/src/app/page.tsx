@@ -103,7 +103,7 @@ export default function HomePage() {
           className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-brand-200/40 blur-3xl"
         />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-14 lg:pb-20 lg:pt-16 lg:px-8">
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-10 lg:pb-14 lg:pt-12 lg:px-8">
           <div className="animate-(--animate-fade-up)">
             <Badge tone="brand">
               <span className="relative flex size-1.5">
@@ -124,7 +124,7 @@ export default function HomePage() {
               booked in a few taps and tracked to your door.
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link href="#order">
                 <Button size="lg" className="px-7">
                   Order water now
@@ -144,7 +144,7 @@ export default function HomePage() {
       </section>
 
       {/* ================= ABOUT ================= */}
-      <section id="about" className="scroll-mt-20 bg-white py-14">
+      <section id="about" className="scroll-mt-20 bg-white py-10">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
             About JAL 24×7
@@ -159,7 +159,7 @@ export default function HomePage() {
             the moment you pay.
           </p>
 
-          <dl className="mx-auto mt-8 grid max-w-xl grid-cols-3 gap-4 border-t border-ink-100 pt-6">
+          <dl className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-4 border-t border-ink-100 pt-6">
             {[
               { value: "24×7", label: "Always open" },
               { value: "20L–12,000L", label: "One jar to a tanker" },
@@ -175,7 +175,7 @@ export default function HomePage() {
       </section>
 
       {/* ================= PROBLEM -> SOLUTION ================= */}
-      <section className="bg-ink-900 py-14 text-white">
+      <section className="bg-ink-900 py-10 text-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-xl text-center">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -186,7 +186,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <ul className="mt-10 space-y-3">
+          <ul className="mt-6 space-y-3">
             {PAIRS.map((pair) => (
               <li
                 key={pair.problem}
@@ -210,7 +210,7 @@ export default function HomePage() {
       </section>
 
       {/* ================= MODULES ================= */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">Modules</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
@@ -450,7 +450,7 @@ function QuickOrder() {
   };
 
   return (
-    <section id="order" className="scroll-mt-20 bg-white py-14">
+    <section id="order" className="scroll-mt-20 bg-white py-10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">

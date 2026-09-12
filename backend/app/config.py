@@ -44,7 +44,12 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # --- Business rules -----------------------------------------------------
-    gst_rate: float = 0.18
+    # Drinking water supplied in bulk jars is nil-rated under Indian GST, so
+    # nothing is added at checkout and the listed price is what is paid. The
+    # tax is still computed and shown as its own line, at zero, rather than
+    # being removed: an invoice that states the position is clearer than one
+    # that is silent about it, and a rate change is a one-line edit.
+    gst_rate: float = 0.0
 
     # Delivery is priced into the catalogue rather than added at checkout: a
     # 20L jar is about Rs 20 from a local supplier and lists here at Rs 30,
