@@ -37,6 +37,10 @@ MAX_BODY_BYTES = 1_048_576
 
 # (requests, seconds) per client IP. Sensitive routes get a tighter budget.
 DEFAULT_LIMIT = (240, 60)
+
+# Production budgets. The auth routes are deliberately tight because in a real
+# deployment every OTP send costs money and rings somebody's actual phone, so
+# this limit is what stops the endpoint being used to bomb a number with SMS.
 ROUTE_LIMITS: list[tuple[str, tuple[int, int]]] = [
     ("/api/auth/otp/request", (5, 300)),   # 5 OTP sends per 5 minutes
     ("/api/auth/otp/verify", (10, 300)),   # 10 verify attempts per 5 minutes
@@ -46,6 +50,22 @@ ROUTE_LIMITS: list[tuple[str, tuple[int, int]]] = [
     ("/api/payments", (20, 60)),
     ("/api/contact", (5, 600)),
 ]
+
+# Demo budgets, used when DEMO_MODE is on.
+#
+# In demo mode there is no SMS gateway: the code is returned in the response
+# and printed on screen. The tight send limit therefore protects nothing, and
+# costs a great deal -- logging in, mistyping, and retrying twice is enough to
+# lock the presenter out for five minutes in the middle of a demonstration.
+# The abuse these numbers guard against does not exist without a gateway, so
+# they are relaxed rather than removed: still bounded, just not hair-trigger.
+DEMO_ROUTE_LIMITS: dict[str, tuple[int, int]] = {
+    "/api/auth/otp/request": (60, 300),
+    "/api/auth/otp/verify": (60, 300),
+    "/api/auth/login": (60, 300),
+    "/api/auth/register": (30, 600),
+    "/api/contact": (30, 600),
+}
 
 _hits: dict[str, deque[float]] = defaultdict(deque)
 
@@ -59,6 +79,10 @@ def _client_ip(request: Request) -> str:
 
 
 def _limit_for(path: str) -> tuple[int, int]:
+    if settings.demo_mode:
+        for prefix, limit in DEMO_ROUTE_LIMITS.items():
+            if path.startswith(prefix):
+                return limit
     for prefix, limit in ROUTE_LIMITS:
         if path.startswith(prefix):
             return limit
