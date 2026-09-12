@@ -3,7 +3,7 @@
 /** Screen 2. All Products: one page, tabbed by category, filterable and sortable. */
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 import { Bottle, Camper, Jar, Search, WaterDrop } from "@/components/icons";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
@@ -27,20 +27,6 @@ const SORTS = [
   { key: "fastest", label: "Fastest delivery" },
 ] as const;
 
-const SPEEDS = [
-  { key: "", label: "Any speed" },
-  { key: "instant", label: "Under 1 hr" },
-  { key: "same_day", label: "Same day" },
-  { key: "scheduled", label: "Scheduled" },
-];
-
-const PRICE_BANDS = [
-  { key: "", label: "Any price", min: undefined, max: undefined },
-  { key: "under-100", label: "Under ₹100", min: undefined, max: 100 },
-  { key: "100-300", label: "₹100 - ₹300", min: 100, max: 300 },
-  { key: "300-plus", label: "Above ₹300", min: 300, max: undefined },
-];
-
 function ProductsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,8 +35,6 @@ function ProductsInner() {
 
   const [category, setCategory] = useState<Category | "all">(initialCategory);
   const [sort, setSort] = useState<string>("price_asc");
-  const [speed, setSpeed] = useState("");
-  const [band, setBand] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -75,14 +59,10 @@ function ProductsInner() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const priceBand = PRICE_BANDS.find((b) => b.key === band);
     try {
       const data = await api.products({
         category: category === "all" ? undefined : category,
         sort,
-        delivery_speed: speed || undefined,
-        min_price: priceBand?.min,
-        max_price: priceBand?.max,
         search: debouncedSearch || undefined,
       });
       setProducts(data);
@@ -91,22 +71,15 @@ function ProductsInner() {
     } finally {
       setLoading(false);
     }
-  }, [category, sort, speed, band, debouncedSearch]);
+  }, [category, sort, debouncedSearch]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const activeFilters = useMemo(
-    () => [speed, band, debouncedSearch].filter(Boolean).length,
-    [speed, band, debouncedSearch],
-  );
+  const activeFilters = debouncedSearch ? 1 : 0;
 
-  const clearFilters = () => {
-    setSpeed("");
-    setBand("");
-    setSearch("");
-  };
+  const clearFilters = () => setSearch("");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -116,8 +89,11 @@ function ProductsInner() {
         subtitle="Bottles, 20L cans and campers, everything a home, office or event needs, delivered from verified suppliers near you."
       />
 
-      {/* Category tabs */}
-      <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+      {/* Category tabs.
+          A ring paints outside the element box, so inside an overflow-x-auto
+          strip the edge tabs had theirs sliced off. Borders sit inside the
+          box, and the padding keeps the active tab's shadow off the edges. */}
+      <div className="-mx-1 mb-5 flex gap-2 overflow-x-auto px-1 py-1">
         {TABS.map((tab) => {
           const active = category === tab.key;
           return (
@@ -128,9 +104,10 @@ function ProductsInner() {
               aria-pressed={active}
               className={cx(
                 "inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
+                "border",
                 active
-                  ? "bg-brand-600 text-white shadow-sm"
-                  : "bg-white text-ink-600 ring-1 ring-ink-200 hover:bg-ink-50",
+                  ? "border-brand-600 bg-brand-600 text-white shadow-sm"
+                  : "border-ink-200 bg-white text-ink-600 hover:border-brand-300 hover:bg-ink-50",
               )}
             >
               <tab.icon className="size-4" />
@@ -153,32 +130,6 @@ function ProductsInner() {
             aria-label="Search products"
           />
         </div>
-
-        <select
-          value={band}
-          onChange={(e) => setBand(e.target.value)}
-          className={cx(inputClass, "w-auto min-w-36")}
-          aria-label="Filter by price"
-        >
-          {PRICE_BANDS.map((b) => (
-            <option key={b.key} value={b.key}>
-              {b.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={speed}
-          onChange={(e) => setSpeed(e.target.value)}
-          className={cx(inputClass, "w-auto min-w-36")}
-          aria-label="Filter by delivery speed"
-        >
-          {SPEEDS.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
-          ))}
-        </select>
 
         <select
           value={sort}

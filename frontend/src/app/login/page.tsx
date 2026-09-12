@@ -170,7 +170,17 @@ function LoginInner() {
                 />
               </Field>
 
-              <Field label="Mobile number" required>
+              <Field
+                label="Mobile number"
+                required
+                hint={
+                  phone.length === 0
+                    ? "10 digits, no country code"
+                    : phone.length < 10
+                      ? `${10 - phone.length} more digit${10 - phone.length === 1 ? "" : "s"}`
+                      : undefined
+                }
+              >
                 <div className="flex">
                   <span className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-l-xl border border-r-0 border-ink-200 bg-ink-50 px-3 text-sm font-medium text-ink-600">
                     <Phone className="size-4" />
